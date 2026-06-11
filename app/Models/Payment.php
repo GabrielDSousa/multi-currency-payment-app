@@ -13,7 +13,7 @@ class Payment extends Model
     protected $fillable = [
         'user_id',
         'amount_local',
-        'currency',
+        'currency_code',
         'amount_eur',
         'exchange_rate',
         'rate_source',

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(User::class)->constrained('users')->cascadeOnDelete();
             $table->decimal('amount_local', 15, 4);
-            $table->char('currency', 3);
+            $table->char('currency_code', 3);
             $table->decimal('amount_eur', 15, 4);
             $table->decimal('exchange_rate', 15, 6);
             $table->string('rate_source');

@@ -22,7 +22,7 @@ class PaymentFactory extends Factory
         return [
             'user_id' => \App\Models\User::factory(),
             'amount_local' => fake()->randomFloat(4, 10, 1000),
-            'currency' => fake()->currencyCode(),
+            'currency_code' => fake()->currencyCode(),
             'exchange_rate' => fake()->randomFloat(6, 0.5, 1.5),
             'amount_eur' => round($amountLocal * $exchangeRate, 4),
             'rate_source' => 'https://api.exchangerate-api.com/',

@@ -32,6 +32,7 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'country' => fake()->country(),
             'currency_code' => fake()->currencyCode(),
+            'department' => fake()->randomElement(['employee', 'finance']),
         ];
     }
 

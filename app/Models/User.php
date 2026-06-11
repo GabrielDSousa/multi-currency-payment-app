@@ -7,11 +7,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Passport\Contracts\OAuthenticatable;
+use Laravel\Passport\HasApiTokens;
+use Laravel\Passport\Token;
+use Laravel\Passport\PersonalAccessTokenResult;
 
-class User extends Authenticatable
+class User extends Authenticatable implements OAuthenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
         'name',
@@ -19,6 +23,7 @@ class User extends Authenticatable
         'password',
         'country',
         'currency_code',
+        'department',
     ];
 
     protected $hidden = [
@@ -47,5 +52,24 @@ class User extends Authenticatable
     public function approvedPayments(): HasMany
     {
         return $this->hasMany(Payment::class, 'approved_by');
+    }
+
+    public function avaibleTokens(): HasMany
+    {
+        return $this->hasMany(Token::class)->where('revoked', false);
+    }
+
+    public function revokeAllTokens(): void
+    {
+        $this->avaibleTokens()->each(function (Token $token) {
+            $token->revoke();
+        });
+    }
+
+    public function createTokenWithDepartmentScope(): PersonalAccessTokenResult
+    {
+        $token = $this->createToken("{$this->name} #{$this->id}", [$this->department]);
+
+        return $token;
     }
 }

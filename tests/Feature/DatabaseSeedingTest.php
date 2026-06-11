@@ -19,8 +19,8 @@ class DatabaseSeedingTest extends TestCase
     {
         $this->seed(DatabaseSeeder::class);
 
-        $this->assertDatabaseCount('users', 5);
-        $this->assertDatabaseCount('payments', 5);
+        $this->assertDatabaseCount('users', 16);
+        $this->assertDatabaseCount('payments', 16);
     }
 
     #[Test]
@@ -30,7 +30,7 @@ class DatabaseSeedingTest extends TestCase
 
         $users = User::all();
 
-        $this->assertCount(5, $users, 'Deve haver exatamente 5 usuários.');
+        $this->assertCount(16, $users, 'Deve haver exatamente 5 usuários.');
     }
 
     #[Test]
@@ -64,6 +64,7 @@ class DatabaseSeedingTest extends TestCase
         $this->assertNotEmpty($user->password);
         $this->assertNotEmpty($user->country);
         $this->assertNotEmpty($user->currency_code);
+        $this->assertNotEmpty($user->department);
 
         $this->assertTrue(boolval(preg_match('/^[A-Z]{3}$/', $user->currency_code)));
         $this->assertDatabaseHas('users', ['id' => $user->id]);
@@ -80,7 +81,7 @@ class DatabaseSeedingTest extends TestCase
 
         $this->assertNotNull($payment->user_id);
         $this->assertIsNumeric($payment->amount_local);
-        $this->assertNotEmpty($payment->currency);
+        $this->assertNotEmpty($payment->currency_code);
         $this->assertIsNumeric($payment->amount_eur);
         $this->assertIsNumeric($payment->exchange_rate);
         $this->assertNotEmpty($payment->rate_source);
@@ -134,6 +135,7 @@ class DatabaseSeedingTest extends TestCase
             $this->assertNotEmpty($user->password);
             $this->assertNotEmpty($user->country);
             $this->assertNotEmpty($user->currency_code);
+            $this->assertNotEmpty($user->department);
         }
     }
 

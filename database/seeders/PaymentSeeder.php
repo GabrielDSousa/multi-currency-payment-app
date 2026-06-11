@@ -18,7 +18,7 @@ class PaymentSeeder extends Seeder
         foreach ($users as $user) {
             \App\Models\Payment::factory()->create([
                 'user_id' => $user->id,
-                'currency' => $user->currency_code,
+                'currency_code' => $user->currency_code,
             ]);
         }
     }
