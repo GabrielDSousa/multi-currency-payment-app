@@ -1,0 +1,505 @@
+openapi: 3.1.0
+
+info:
+  title: REST API
+  description: |
+    RESTful API built with Laravel 12. This API manages multi-currency
+    payment requests across a company with employees in different countries.
+
+    ## Authentication
+    Protected endpoints require a JWT Bearer token obtained from
+    `POST /api/login` or `POST /api/register`. Pass it in the
+    `Authorization` header:
+
+    ```
+    Authorization: Bearer <access_token>
+    ```
+  version: 1.0.0
+
+servers:
+  - url: http://localhost/api
+    description: Local development server
+
+tags:
+  - name: Authentication
+    description: User registration, login, and logout
+  - name: Monitoring
+    description: API health and status checks
+
+# ---------------------------------------------------------------------------
+# Paths
+# ---------------------------------------------------------------------------
+paths:
+
+  # ── Health ────────────────────────────────────────────────────────────────
+  /health:
+    get:
+      tags:
+        - Monitoring
+      summary: Health Check
+      description: >
+        Returns the current health status of the API and its dependencies
+        (database, cache, queue, storage, and application runtime).
+      operationId: getHealth
+      security: []
+      responses:
+        '200':
+          description: All systems healthy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: healthy
+                timestamp: "2026-06-11T21:13:54+00:00"
+                environment: local
+                version: "1.0.0"
+                checks:
+                  database:
+                    status: healthy
+                    message: "Database connection OK"
+                  cache:
+                    status: healthy
+                    message: "Cache driver OK"
+                  queue:
+                    status: healthy
+                    message: "Queue driver [database] OK"
+                  storage:
+                    status: healthy
+                    message: "Storage read/write OK"
+                  app:
+                    status: healthy
+                    message: "Laravel 12.62.0 running"
+                    php_version: "8.5.7"
+                    memory_usage: "4 MB"
+        '503':
+          description: One or more systems are unhealthy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: unhealthy
+                timestamp: "2026-06-10T15:24:00+00:00"
+                environment: local
+                version: "1.0.0"
+                checks:
+                  database:
+                    status: unhealthy
+                    message: "SQLSTATE[HY000] [2002] Connection refused"
+                  cache:
+                    status: healthy
+                    message: "Cache driver OK"
+
+  # ── Register ──────────────────────────────────────────────────────────────
+  /register:
+    post:
+      tags:
+        - Authentication
+      summary: Register User
+      description: Creates a new user account and returns a JWT authentication token.
+      operationId: registerUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              name: "John Doe"
+              email: "john@example.com"
+              password: "SecurePassword123!"
+              password_confirmation: "SecurePassword123!"
+              country: "BR"
+              currency_code: "BRL"
+      responses:
+        '201':
+          description: User registered successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              example:
+                message: "User registered successfully."
+                user:
+                  id: 18
+                  name: "John Doe"
+                  email: "john@example.com"
+                  country: "BR"
+                  currency_code: "BRL"
+                  department: "employee"
+                token:
+                  access_token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."
+                  token_type: "Bearer"
+                  scopes:
+                    - "employee"
+        '422':
+          description: Validation error — one or more fields are invalid or missing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+              example:
+                message: "The name field is required. (and 4 more errors)"
+                errors:
+                  name:
+                    - "The name field is required."
+                  email:
+                    - "The email field is required."
+                  password:
+                    - "The password field is required."
+                  country:
+                    - "The country field is required."
+                  currency_code:
+                    - "The currency code field is required."
+
+  # ── Login ─────────────────────────────────────────────────────────────────
+  /login:
+    post:
+      tags:
+        - Authentication
+      summary: Login User
+      description: Authenticates a user with email and password, returning a JWT token.
+      operationId: loginUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: "john@example.com"
+              password: "SecurePassword123!"
+      responses:
+        '200':
+          description: Login successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              example:
+                message: "Login successful."
+                user:
+                  id: 16
+                  name: "Finance User"
+                  email: "finance_user@email.com"
+                  country: "US"
+                  currency_code: "USD"
+                  department: "finance"
+                token:
+                  access_token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."
+                  token_type: "Bearer"
+                  scopes:
+                    - "finance"
+        '401':
+          description: Invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "Invalid credentials."
+        '422':
+          description: Validation error — one or more fields are invalid or missing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+              example:
+                message: "The email field must be a valid email address. (and 1 more error)"
+                errors:
+                  email:
+                    - "The email field must be a valid email address."
+                  password:
+                    - "The password field is required."
+
+  # ── Logout ────────────────────────────────────────────────────────────────
+  /logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout User
+      description: >
+        Revokes the current Bearer token and ends the user session.
+        After a successful logout the token cannot be reused — clients
+        should discard it locally.
+      operationId: logoutUser
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Logout successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              example:
+                message: "Logged out successfully."
+        '401':
+          description: Missing or invalid Bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "Unauthenticated."
+
+# ---------------------------------------------------------------------------
+# Components
+# ---------------------------------------------------------------------------
+components:
+
+  # ── Security Schemes ──────────────────────────────────────────────────────
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        JWT Bearer token obtained from `POST /api/login` or
+        `POST /api/register`.
+
+  # ── Schemas ───────────────────────────────────────────────────────────────
+  schemas:
+
+    # Request bodies ─────────────────────────────────────────────────────────
+
+    RegisterRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - password_confirmation
+        - country
+        - currency_code
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: User's full name.
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          description: Valid and unique email address.
+          example: "john@example.com"
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: >
+            Minimum 8 characters. Must contain at least one uppercase letter,
+            one lowercase letter, one digit, and one special character.
+          example: "SecurePassword123!"
+        password_confirmation:
+          type: string
+          format: password
+          description: Must match the `password` field.
+          example: "SecurePassword123!"
+        country:
+          type: string
+          minLength: 2
+          maxLength: 2
+          description: ISO 3166-1 alpha-2 country code.
+          example: "BR"
+        currency_code:
+          type: string
+          minLength: 3
+          maxLength: 3
+          description: ISO 4217 currency code.
+          example: "BRL"
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's registered email address.
+          example: "john@example.com"
+        password:
+          type: string
+          format: password
+          description: User's password.
+          example: "SecurePassword123!"
+
+    # Shared objects ──────────────────────────────────────────────────────────
+
+    UserObject:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier of the user.
+          example: 18
+        name:
+          type: string
+          description: User's full name.
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          description: User's email address.
+          example: "john@example.com"
+        country:
+          type: string
+          minLength: 2
+          maxLength: 2
+          description: ISO 3166-1 alpha-2 country code.
+          example: "BR"
+        currency_code:
+          type: string
+          minLength: 3
+          maxLength: 3
+          description: ISO 4217 currency code.
+          example: "BRL"
+        department:
+          type: string
+          enum:
+            - employee
+            - finance
+          description: User's department / role scope.
+          example: "employee"
+
+    TokenObject:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: Signed JWT Bearer token.
+          example: "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."
+        token_type:
+          type: string
+          enum:
+            - Bearer
+          description: Token type — always `Bearer`.
+          example: "Bearer"
+        scopes:
+          type: array
+          description: Permission scopes granted to this token.
+          items:
+            type: string
+            enum:
+              - employee
+              - finance
+          example:
+            - "employee"
+
+    HealthCheck:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - healthy
+            - unhealthy
+          description: Status of this individual check.
+          example: "healthy"
+        message:
+          type: string
+          description: Human-readable status detail.
+          example: "Database connection OK"
+        php_version:
+          type: string
+          description: PHP version — present only on the `app` check.
+          example: "8.5.7"
+        memory_usage:
+          type: string
+          description: Current memory consumption — present only on the `app` check.
+          example: "4 MB"
+
+    # Response bodies ─────────────────────────────────────────────────────────
+
+    AuthResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Human-readable status message.
+          example: "Login successful."
+        user:
+          $ref: '#/components/schemas/UserObject'
+        token:
+          $ref: '#/components/schemas/TokenObject'
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Human-readable status message.
+          example: "Logged out successfully."
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Human-readable error description.
+          example: "Invalid credentials."
+
+    ValidationErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Summary of all validation failures.
+          example: "The name field is required. (and 4 more errors)"
+        errors:
+          type: object
+          description: >
+            Map of field names to an array of error messages for that field.
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            email:
+              - "The email field must be a valid email address."
+            password:
+              - "The password field is required."
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - healthy
+            - unhealthy
+          description: Aggregated health status of the entire API.
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 datetime when the check was performed.
+          example: "2026-06-11T21:13:54+00:00"
+        environment:
+          type: string
+          description: Current application environment.
+          example: "local"
+        version:
+          type: string
+          description: API version.
+          example: "1.0.0"
+        checks:
+          type: object
+          description: Individual health status per subsystem.
+          properties:
+            database:
+              $ref: '#/components/schemas/HealthCheck'
+            cache:
+              $ref: '#/components/schemas/HealthCheck'
+            queue:
+              $ref: '#/components/schemas/HealthCheck'
+            storage:
+              $ref: '#/components/schemas/HealthCheck'
+            app:
+              $ref: '#/components/schemas/HealthCheck'
