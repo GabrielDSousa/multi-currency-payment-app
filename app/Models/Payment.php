@@ -26,6 +26,7 @@ class Payment extends Model
     ];
 
     protected $casts = [
+        'user_id'     => 'integer',
         'amount_local' => 'decimal:4',
         'amount_eur' => 'decimal:4',
         'exchange_rate' => 'decimal:6',
