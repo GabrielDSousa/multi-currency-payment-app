@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Group;
+use Tests\TestCase;
 
+#[Group('passport')]
 class PassportInstallationTest extends TestCase
 {
     private string $basePath;

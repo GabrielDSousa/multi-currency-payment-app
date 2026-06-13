@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Tests\Feature;
 
 use App\Models\Payment;
@@ -221,10 +219,8 @@ class ExchangeRateServiceTest extends TestCase
 
         $this->service->fetchRate('GBP');
 
-        // The key must exist immediately after the call.
         $this->assertTrue(Cache::has(self::CACHE_KEY_PREFIX . 'GBP'));
 
-        // Advance time by 59 minutes — cache must still be present.
         $this->travel(59)->minutes();
         $this->assertTrue(
             Cache::has(self::CACHE_KEY_PREFIX . 'GBP'),
@@ -296,7 +292,7 @@ class ExchangeRateServiceTest extends TestCase
         try {
             $this->service->fetchRate('USD');
         } catch (\Exception) {
-            // Expected.
+            // Expected — we only assert the Cache.
         }
 
         $this->assertFalse(
@@ -455,7 +451,7 @@ class ExchangeRateServiceTest extends TestCase
             'rate_timestamp' => now()->toISOString(),
         ]);
 
-        // Simulate a market-rate change — the stored payment rate must NOT be affected.
+        // Simulate a market-rate change, the stored payment rate must NOT be affected.
         Http::fake([
             '*EUR/BRL*' => Http::response($this->buildApiResponse('BRL', 5.99), 200),
         ]);

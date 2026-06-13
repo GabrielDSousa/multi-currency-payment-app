@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('healthcheck')]
 class HealthCheckTest extends TestCase
 {
     #[Test]

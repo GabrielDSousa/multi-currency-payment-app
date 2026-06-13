@@ -2,12 +2,15 @@
 
 namespace Tests\Feature\Auth;
 
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\Group;
+use Tests\TestCase;
 
+#[Group('auth')]
 class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
@@ -18,7 +21,8 @@ class AuthenticationTest extends TestCase
         Artisan::call('passport:client --personal --no-interaction');
     }
 
-    public function test_user_can_register_with_valid_data(): void
+    #[Test]
+    public function user_can_register_with_valid_data(): void
     {
         $payload = [
             'name' => 'João Silva',
@@ -41,7 +45,8 @@ class AuthenticationTest extends TestCase
         $this->assertDatabaseHas('users', ['email' => 'joao@example.com']);
     }
 
-    public function test_register_fails_with_missing_required_fields(): void
+    #[Test]
+    public function register_fails_with_missing_required_fields(): void
     {
         $response = $this->postJson('/api/register', []);
 
@@ -49,7 +54,8 @@ class AuthenticationTest extends TestCase
             ->assertJsonStructure(['message', 'errors']);
     }
 
-    public function test_register_fails_with_invalid_email(): void
+    #[Test]
+    public function register_fails_with_invalid_email(): void
     {
         $payload = [
             'name' => 'A',
@@ -64,7 +70,8 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(422);
     }
 
-    public function test_register_fails_with_weak_password(): void
+    #[Test]
+    public function register_fails_with_weak_password(): void
     {
         $payload = [
             'name' => 'A',
@@ -79,7 +86,8 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(422);
     }
 
-    public function test_register_fails_with_duplicate_email(): void
+    #[Test]
+    public function register_fails_with_duplicate_email(): void
     {
         User::factory()->create(['email' => 'dupe@example.com']);
 
@@ -96,7 +104,8 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(422);
     }
 
-    public function test_register_fails_with_invalid_country_code(): void
+    #[Test]
+    public function register_fails_with_invalid_country_code(): void
     {
         $payload = [
             'name' => 'A',
@@ -111,7 +120,8 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(422);
     }
 
-    public function test_register_fails_with_invalid_currency_code(): void
+    #[Test]
+    public function register_fails_with_invalid_currency_code(): void
     {
         $payload = [
             'name' => 'A',
@@ -126,7 +136,8 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(422);
     }
 
-    public function test_register_fails_with_invalid_department(): void
+    #[Test]
+    public function register_fails_with_invalid_department(): void
     {
         $payload = [
             'name' => 'A',
@@ -142,7 +153,8 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(422);
     }
 
-    public function test_user_can_login_with_valid_credentials(): void
+    #[Test]
+    public function user_can_login_with_valid_credentials(): void
     {
         User::factory()->create(['email' => 'login@example.com', 'password' => Hash::make('SenhaSegura123!')]);
 
@@ -152,7 +164,8 @@ class AuthenticationTest extends TestCase
             ->assertJsonStructure(['message', 'user' => ['id', 'name', 'email', 'country', 'currency_code'], 'token' => ['access_token', 'token_type', 'scopes']]);
     }
 
-    public function test_login_fails_with_wrong_password(): void
+    #[Test]
+    public function login_fails_with_wrong_password(): void
     {
         User::factory()->create(['email' => 'wp@example.com', 'password' => Hash::make('rightpass')]);
 
@@ -160,13 +173,15 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(401);
     }
 
-    public function test_login_fails_with_nonexistent_email(): void
+    #[Test]
+    public function login_fails_with_nonexistent_email(): void
     {
         $response = $this->postJson('/api/login', ['email' => 'nope@example.com', 'password' => 'whatever']);
         $response->assertStatus(401);
     }
 
-    public function test_user_login_have_finance_scope_when_department_is_finance(): void
+    #[Test]
+    public function user_login_have_finance_scope_when_department_is_finance(): void
     {
         User::factory()->create(['email' => 'fin@example.com', 'password' => Hash::make('SenhaSegura123!'), 'department' => 'finance']);
 
@@ -175,7 +190,8 @@ class AuthenticationTest extends TestCase
             ->assertJsonPath('token.scopes.0', 'finance');
     }
 
-    public function test_user_login_have_employee_scope_when_department_is_employee(): void
+    #[Test]
+    public function user_login_have_employee_scope_when_department_is_employee(): void
     {
         User::factory()->create(['email' => 'def@example.com', 'password' => Hash::make('SenhaSegura123!'), 'department' => 'employee']);
 
@@ -184,7 +200,8 @@ class AuthenticationTest extends TestCase
             ->assertJsonPath('token.scopes.0', 'employee');
     }
 
-    public function test_authenticated_user_can_logout(): void
+    #[Test]
+    public function authenticated_user_can_logout(): void
     {
         $user = User::factory()->create();
         $token = $user->createToken('t', ['employee'])->accessToken;
@@ -193,7 +210,8 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(200)->assertJson(['message' => 'Logged out successfully.']);
     }
 
-    public function test_token_is_revoked_after_logout(): void
+    #[Test]
+    public function token_is_revoked_after_logout(): void
     {
         $user = User::factory()->create();
         $tokenResult = $user->createToken('t', ['employee']);
@@ -205,7 +223,8 @@ class AuthenticationTest extends TestCase
         $res->assertStatus(401);
     }
 
-    public function test_logout_fails_without_token(): void
+    #[Test]
+    public function logout_fails_without_token(): void
     {
         $res = $this->postJson('/api/logout');
         $res->assertStatus(401);
