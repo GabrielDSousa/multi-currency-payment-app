@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
+            PassportPersonalClientSeeder::class,
             UserSeeder::class,
             PaymentSeeder::class,
         ]);
