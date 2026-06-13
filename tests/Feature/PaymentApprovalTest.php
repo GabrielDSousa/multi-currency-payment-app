@@ -15,10 +15,6 @@ class PaymentApprovalTest extends TestCase
 {
     use RefreshDatabase;
 
-    // =========================================================================
-    // Helpers
-    // =========================================================================
-
     private function financeUser(): User
     {
         return User::factory()->create(['department' => 'finance']);
@@ -39,10 +35,6 @@ class PaymentApprovalTest extends TestCase
         ], $overrides));
     }
 
-    // =========================================================================
-    // APPROVE — happy path
-    // =========================================================================
-
     #[Test]
     public function finance_can_approve_a_pending_payment(): void
     {
@@ -51,7 +43,7 @@ class PaymentApprovalTest extends TestCase
 
         Passport::actingAs($finance);
 
-        $this->patchJson("/api/payment-requests/{$payment->id}/approve")
+        $this->patchJson("/api/payment/{$payment->id}/approve")
             ->assertOk()
             ->assertJsonPath('data.status', 'approved');
 
@@ -72,7 +64,7 @@ class PaymentApprovalTest extends TestCase
 
         Passport::actingAs($finance);
 
-        $this->patchJson("/api/payment-requests/{$payment->id}/approve")
+        $this->patchJson("/api/payment/{$payment->id}/approve")
             ->assertOk()
             ->assertJsonPath('data.approved_by', $finance->id);
     }
@@ -85,7 +77,7 @@ class PaymentApprovalTest extends TestCase
 
         Passport::actingAs($finance);
 
-        $this->patchJson("/api/payment-requests/{$payment->id}/approve")
+        $this->patchJson("/api/payment/{$payment->id}/approve")
             ->assertOk();
 
         $this->assertNotNull($payment->fresh()->approved_at);
@@ -99,14 +91,10 @@ class PaymentApprovalTest extends TestCase
 
         Passport::actingAs($finance);
 
-        $this->patchJson("/api/payment-requests/{$payment->id}/approve")->assertOk();
+        $this->patchJson("/api/payment/{$payment->id}/approve")->assertOk();
 
         $this->assertFalse((bool) $payment->fresh()->pending);
     }
-
-    // =========================================================================
-    // REJECT — happy path
-    // =========================================================================
 
     #[Test]
     public function finance_can_reject_a_pending_payment(): void
@@ -116,7 +104,7 @@ class PaymentApprovalTest extends TestCase
 
         Passport::actingAs($finance);
 
-        $this->patchJson("/api/payment-requests/{$payment->id}/reject")
+        $this->patchJson("/api/payment/{$payment->id}/reject")
             ->assertOk()
             ->assertJsonPath('data.status', 'rejected');
 
@@ -135,7 +123,7 @@ class PaymentApprovalTest extends TestCase
 
         Passport::actingAs($finance);
 
-        $this->patchJson("/api/payment-requests/{$payment->id}/reject")->assertOk();
+        $this->patchJson("/api/payment/{$payment->id}/reject")->assertOk();
 
         $this->assertFalse((bool) $payment->fresh()->pending);
     }
@@ -148,14 +136,10 @@ class PaymentApprovalTest extends TestCase
 
         Passport::actingAs($finance);
 
-        $this->patchJson("/api/payment-requests/{$payment->id}/reject")->assertOk();
+        $this->patchJson("/api/payment/{$payment->id}/reject")->assertOk();
 
         $this->assertNull($payment->fresh()->approved_at);
     }
-
-    // =========================================================================
-    // 403 — employee cannot approve or reject
-    // =========================================================================
 
     #[Test]
     public function employee_cannot_approve_a_payment(): void
@@ -165,7 +149,7 @@ class PaymentApprovalTest extends TestCase
 
         Passport::actingAs($employee);
 
-        $this->patchJson("/api/payment-requests/{$payment->id}/approve")
+        $this->patchJson("/api/payment/{$payment->id}/approve")
             ->assertForbidden();
     }
 
@@ -177,20 +161,16 @@ class PaymentApprovalTest extends TestCase
 
         Passport::actingAs($employee);
 
-        $this->patchJson("/api/payment-requests/{$payment->id}/reject")
+        $this->patchJson("/api/payment/{$payment->id}/reject")
             ->assertForbidden();
     }
-
-    // =========================================================================
-    // 401 — unauthenticated
-    // =========================================================================
 
     #[Test]
     public function unauthenticated_user_cannot_approve(): void
     {
         $payment = $this->pendingPayment();
 
-        $this->patchJson("/api/payment-requests/{$payment->id}/approve")
+        $this->patchJson("/api/payment/{$payment->id}/approve")
             ->assertUnauthorized();
     }
 
@@ -199,13 +179,9 @@ class PaymentApprovalTest extends TestCase
     {
         $payment = $this->pendingPayment();
 
-        $this->patchJson("/api/payment-requests/{$payment->id}/reject")
+        $this->patchJson("/api/payment/{$payment->id}/reject")
             ->assertUnauthorized();
     }
-
-    // =========================================================================
-    // 400 — non-pending payments
-    // =========================================================================
 
     #[Test]
     public function cannot_approve_an_already_approved_payment(): void
@@ -219,7 +195,7 @@ class PaymentApprovalTest extends TestCase
 
         Passport::actingAs($finance);
 
-        $this->patchJson("/api/payment-requests/{$payment->id}/approve")
+        $this->patchJson("/api/payment/{$payment->id}/approve")
             ->assertStatus(400)
             ->assertJsonPath('message', 'Only pending requests can be approved.');
     }
@@ -236,7 +212,7 @@ class PaymentApprovalTest extends TestCase
 
         Passport::actingAs($finance);
 
-        $this->patchJson("/api/payment-requests/{$payment->id}/approve")
+        $this->patchJson("/api/payment/{$payment->id}/approve")
             ->assertStatus(400)
             ->assertJsonPath('message', 'Only pending requests can be approved.');
     }
@@ -252,7 +228,7 @@ class PaymentApprovalTest extends TestCase
 
         Passport::actingAs($finance);
 
-        $this->patchJson("/api/payment-requests/{$payment->id}/approve")
+        $this->patchJson("/api/payment/{$payment->id}/approve")
             ->assertStatus(400)
             ->assertJsonPath('message', 'Only pending requests can be approved.');
     }
@@ -269,7 +245,7 @@ class PaymentApprovalTest extends TestCase
 
         Passport::actingAs($finance);
 
-        $this->patchJson("/api/payment-requests/{$payment->id}/reject")
+        $this->patchJson("/api/payment/{$payment->id}/reject")
             ->assertStatus(400)
             ->assertJsonPath('message', 'Only pending requests can be rejected.');
     }
@@ -286,7 +262,7 @@ class PaymentApprovalTest extends TestCase
 
         Passport::actingAs($finance);
 
-        $this->patchJson("/api/payment-requests/{$payment->id}/reject")
+        $this->patchJson("/api/payment/{$payment->id}/reject")
             ->assertStatus(400)
             ->assertJsonPath('message', 'Only pending requests can be rejected.');
     }
@@ -302,21 +278,17 @@ class PaymentApprovalTest extends TestCase
 
         Passport::actingAs($finance);
 
-        $this->patchJson("/api/payment-requests/{$payment->id}/reject")
+        $this->patchJson("/api/payment/{$payment->id}/reject")
             ->assertStatus(400)
             ->assertJsonPath('message', 'Only pending requests can be rejected.');
     }
-
-    // =========================================================================
-    // 404 — payment not found
-    // =========================================================================
 
     #[Test]
     public function approve_returns_404_for_nonexistent_payment(): void
     {
         Passport::actingAs($this->financeUser());
 
-        $this->patchJson('/api/payment-requests/999999/approve')
+        $this->patchJson('/api/payment/999999/approve')
             ->assertNotFound();
     }
 
@@ -325,7 +297,7 @@ class PaymentApprovalTest extends TestCase
     {
         Passport::actingAs($this->financeUser());
 
-        $this->patchJson('/api/payment-requests/999999/reject')
+        $this->patchJson('/api/payment/999999/reject')
             ->assertNotFound();
     }
 }

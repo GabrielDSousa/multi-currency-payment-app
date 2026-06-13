@@ -27,8 +27,8 @@ tags:
     description: API health and status checks
   - name: Payment Requests
     description: >
-      Create, list, and manage multi-currency payment requests.
-      Employees see only their own requests; finance members see all.
+      Create, list, detail, approve, and reject multi-currency payment requests.
+      Employees see only their own records; finance members see all and can action them.
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -251,7 +251,7 @@ paths:
                 message: "Unauthenticated."
 
   # ── Payment Requests — List ───────────────────────────────────────────────
-  /payment-requests:
+  /payment:
     get:
       tags:
         - Payment Requests
@@ -260,8 +260,8 @@ paths:
         Returns a paginated list of payment requests (15 per page).
 
         **Access rules:**
-        - `employee` — sees only their own requests; the `employee_id` filter is ignored.
-        - `finance` — sees all requests and may further filter by `employee_id`.
+        - `employee` — sees only their own requests; `employee_id` filter is ignored.
+        - `finance` — sees all requests and may filter by `employee_id`.
       operationId: listPaymentRequests
       security:
         - BearerAuth: []
@@ -272,16 +272,12 @@ paths:
           description: Filter by derived payment status.
           schema:
             type: string
-            enum:
-              - pending
-              - approved
-              - rejected
-              - expired
+            enum: [pending, approved, rejected, expired]
           example: pending
         - name: currency
           in: query
           required: false
-          description: ISO 4217 currency code (3 letters). Case-insensitive.
+          description: ISO 4217 currency code (3 letters, case-insensitive).
           schema:
             type: string
             minLength: 3
@@ -308,8 +304,7 @@ paths:
         - name: employee_id
           in: query
           required: false
-          description: >
-            Filter by employee ID. **Finance only** — ignored for employee tokens.
+          description: Filter by employee ID — **finance only**.
           schema:
             type: integer
           example: 7
@@ -347,10 +342,10 @@ paths:
                     created_at: "2026-06-12T10:00:00+00:00"
                     updated_at: "2026-06-12T10:00:00+00:00"
                 links:
-                  first: "http://localhost/api/payment-requests?page=1"
-                  last: "http://localhost/api/payment-requests?page=2"
+                  first: "http://localhost/api/payment?page=1"
+                  last: "http://localhost/api/payment?page=2"
                   prev: null
-                  next: "http://localhost/api/payment-requests?page=2"
+                  next: "http://localhost/api/payment?page=2"
                 meta:
                   current_page: 1
                   from: 1
@@ -379,7 +374,7 @@ paths:
                     - "The status field must be one of pending, approved, rejected, expired."
 
   # ── Payment Requests — Detail ─────────────────────────────────────────────
-  /payment-requests/{id}:
+  /payment/{id}:
     get:
       tags:
         - Payment Requests
@@ -388,7 +383,7 @@ paths:
         Returns the full details of a single payment request.
 
         **Access rules:**
-        - `employee` — can only fetch their own requests; returns `403` otherwise.
+        - `employee` — can only fetch their own request; returns `403` otherwise.
         - `finance` — can fetch any request.
       operationId: getPaymentRequest
       security:
@@ -435,6 +430,183 @@ paths:
                 message: "Unauthenticated."
         '403':
           description: Forbidden — employee attempting to view another user's request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "This action is unauthorized."
+        '404':
+          description: Payment request not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "No query results for model [App\\Models\\Payment] 42."
+
+  # ── Payment Requests — Approve ────────────────────────────────────────────
+  /payment/{id}/approve:
+    patch:
+      tags:
+        - Payment Requests
+      summary: Approve Payment Request
+      description: >
+        Marks a pending payment request as approved.
+
+        **Access rules:**
+        - `finance` only — employees receive `403`.
+
+        **State rules:**
+        - Only requests with `status = pending` can be approved.
+        - Attempting to approve an already approved, rejected, or expired
+          request returns `400`.
+
+        On success, the response reflects the updated payment with
+        `status: "approved"`, `approved_by` set to the finance user's ID,
+        and `approved_at` set to the current timestamp.
+      operationId: approvePaymentRequest
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier of the payment request to approve.
+          schema:
+            type: integer
+          example: 42
+      responses:
+        '200':
+          description: Payment request approved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentDetailResponse'
+              example:
+                data:
+                  id: 42
+                  user_id: 7
+                  description: "Office supplies reimbursement"
+                  amount_local: 1500.00
+                  currency_code: "BRL"
+                  amount_eur: 276.75
+                  exchange_rate: 5.42
+                  rate_source: "exchangerate-api.com"
+                  rate_timestamp: "2026-06-12T10:00:00+00:00"
+                  status: "approved"
+                  approved_by: 3
+                  approved_at: "2026-06-13T14:22:00+00:00"
+                  expired_at: null
+                  created_at: "2026-06-12T10:00:00+00:00"
+                  updated_at: "2026-06-13T14:22:00+00:00"
+        '400':
+          description: Bad request — payment is not in pending state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "Only pending requests can be approved."
+        '401':
+          description: Missing or invalid Bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "Unauthenticated."
+        '403':
+          description: Forbidden — only finance members can approve requests.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "This action is unauthorized."
+        '404':
+          description: Payment request not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "No query results for model [App\\Models\\Payment] 42."
+
+  # ── Payment Requests — Reject ─────────────────────────────────────────────
+  /payment/{id}/reject:
+    patch:
+      tags:
+        - Payment Requests
+      summary: Reject Payment Request
+      description: >
+        Marks a pending payment request as rejected.
+
+        **Access rules:**
+        - `finance` only — employees receive `403`.
+
+        **State rules:**
+        - Only requests with `status = pending` can be rejected.
+        - Attempting to reject an already approved, rejected, or expired
+          request returns `400`.
+
+        On success, the response reflects the updated payment with
+        `status: "rejected"`, `approved_by` set to the finance user's ID,
+        and `approved_at` remaining `null` (rejection does not set an
+        approval timestamp).
+      operationId: rejectPaymentRequest
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier of the payment request to reject.
+          schema:
+            type: integer
+          example: 42
+      responses:
+        '200':
+          description: Payment request rejected successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentDetailResponse'
+              example:
+                data:
+                  id: 42
+                  user_id: 7
+                  description: "Office supplies reimbursement"
+                  amount_local: 1500.00
+                  currency_code: "BRL"
+                  amount_eur: 276.75
+                  exchange_rate: 5.42
+                  rate_source: "exchangerate-api.com"
+                  rate_timestamp: "2026-06-12T10:00:00+00:00"
+                  status: "rejected"
+                  approved_by: 3
+                  approved_at: null
+                  expired_at: null
+                  created_at: "2026-06-12T10:00:00+00:00"
+                  updated_at: "2026-06-13T14:25:00+00:00"
+        '400':
+          description: Bad request — payment is not in pending state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "Only pending requests can be rejected."
+        '401':
+          description: Missing or invalid Bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "Unauthenticated."
+        '403':
+          description: Forbidden — only finance members can reject requests.
           content:
             application/json:
               schema:
@@ -670,7 +842,6 @@ components:
             password:
               - "The password field is required."
 
-
     HealthResponse:
       type: object
       properties:
@@ -708,6 +879,8 @@ components:
               $ref: '#/components/schemas/HealthCheck'
             app:
               $ref: '#/components/schemas/HealthCheck'
+
+    # Payment schemas ─────────────────────────────────────────────────────────
 
     PaymentObject:
       type: object
@@ -758,11 +931,7 @@ components:
           example: "2026-06-12T10:00:00+00:00"
         status:
           type: string
-          enum:
-            - pending
-            - approved
-            - rejected
-            - expired
+          enum: [pending, approved, rejected, expired]
           description: >
             Derived status of the request.
             - `pending` — awaiting finance review.
@@ -773,7 +942,9 @@ components:
         approved_by:
           type: integer
           nullable: true
-          description: ID of the finance user who approved or rejected the request. `null` if not yet actioned.
+          description: >
+            ID of the finance user who approved or rejected the request.
+            `null` if not yet actioned.
           example: null
         approved_at:
           type: string
@@ -805,12 +976,12 @@ components:
           type: string
           format: uri
           description: URL of the first page.
-          example: "http://localhost/api/payment-requests?page=1"
+          example: "http://localhost/api/payment?page=1"
         last:
           type: string
           format: uri
           description: URL of the last page.
-          example: "http://localhost/api/payment-requests?page=2"
+          example: "http://localhost/api/payment?page=2"
         prev:
           type: string
           format: uri
@@ -822,7 +993,7 @@ components:
           format: uri
           nullable: true
           description: URL of the next page, or `null` on the last page.
-          example: "http://localhost/api/payment-requests?page=2"
+          example: "http://localhost/api/payment?page=2"
 
     PaginationMeta:
       type: object

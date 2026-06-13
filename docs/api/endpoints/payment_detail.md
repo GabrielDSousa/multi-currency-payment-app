@@ -1,6 +1,6 @@
 # Get Payment Request
 
-## GET /api/payment-requests/{id}
+## GET /api/payment/{id}
 
 Returns the full details of a single payment request.
 

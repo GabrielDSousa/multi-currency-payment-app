@@ -28,7 +28,7 @@ class PaymentListTest extends TestCase
 
         Passport::actingAs($employee);
 
-        $this->getJson('/api/payment-requests')
+        $this->getJson('/api/payment')
             ->assertOk()
             ->assertJsonCount(3, 'data');
     }
@@ -42,7 +42,7 @@ class PaymentListTest extends TestCase
 
         Passport::actingAs($finance);
 
-        $this->getJson('/api/payment-requests')
+        $this->getJson('/api/payment')
             ->assertOk()
             ->assertJsonCount(5, 'data');
     }
@@ -59,7 +59,7 @@ class PaymentListTest extends TestCase
 
         Passport::actingAs($finance);
 
-        $this->getJson("/api/payment-requests?employee_id={$employee->id}")
+        $this->getJson("/api/payment?employee_id={$employee->id}")
             ->assertOk()
             ->assertJsonCount(2, 'data');
     }
@@ -75,7 +75,7 @@ class PaymentListTest extends TestCase
 
         Passport::actingAs($user);
 
-        $this->getJson('/api/payment-requests?status=pending')
+        $this->getJson('/api/payment?status=pending')
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.status', 'pending');
@@ -92,7 +92,7 @@ class PaymentListTest extends TestCase
 
         Passport::actingAs($user);
 
-        $this->getJson('/api/payment-requests?status=approved')
+        $this->getJson('/api/payment?status=approved')
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.status', 'approved');
@@ -109,7 +109,7 @@ class PaymentListTest extends TestCase
 
         Passport::actingAs($user);
 
-        $this->getJson('/api/payment-requests?status=expired')
+        $this->getJson('/api/payment?status=expired')
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.status', 'expired');
@@ -126,7 +126,7 @@ class PaymentListTest extends TestCase
 
         Passport::actingAs($user);
 
-        $this->getJson('/api/payment-requests?currency=BRL')
+        $this->getJson('/api/payment?currency=BRL')
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.currency_code', 'BRL');
@@ -143,7 +143,7 @@ class PaymentListTest extends TestCase
 
         Passport::actingAs($user);
 
-        $this->getJson('/api/payment-requests?date_from=2026-06-01')
+        $this->getJson('/api/payment?date_from=2026-06-01')
             ->assertOk()
             ->assertJsonCount(1, 'data');
     }
@@ -160,7 +160,7 @@ class PaymentListTest extends TestCase
 
         Passport::actingAs($user);
 
-        $this->getJson('/api/payment-requests?date_from=2026-06-01&date_to=2026-06-10')
+        $this->getJson('/api/payment?date_from=2026-06-01&date_to=2026-06-10')
             ->assertOk()
             ->assertJsonCount(2, 'data');
     }
@@ -174,7 +174,7 @@ class PaymentListTest extends TestCase
 
         Passport::actingAs($user);
 
-        $response = $this->getJson('/api/payment-requests')->assertOk();
+        $response = $this->getJson('/api/payment')->assertOk();
 
         $this->assertCount(15, $response->json('data'));
         $this->assertArrayHasKey('meta', $response->json());
@@ -191,7 +191,7 @@ class PaymentListTest extends TestCase
 
         Passport::actingAs($employee);
 
-        $this->getJson("/api/payment-requests/{$payment->id}")
+        $this->getJson("/api/payment/{$payment->id}")
             ->assertOk()
             ->assertJsonPath('data.id', $payment->id);
     }
@@ -205,7 +205,7 @@ class PaymentListTest extends TestCase
 
         Passport::actingAs($employee);
 
-        $this->getJson("/api/payment-requests/{$payment->id}")
+        $this->getJson("/api/payment/{$payment->id}")
             ->assertForbidden();
     }
 
@@ -218,7 +218,7 @@ class PaymentListTest extends TestCase
 
         Passport::actingAs($finance);
 
-        $this->getJson("/api/payment-requests/{$payment->id}")
+        $this->getJson("/api/payment/{$payment->id}")
             ->assertOk()
             ->assertJsonPath('data.id', $payment->id);
     }
@@ -228,7 +228,7 @@ class PaymentListTest extends TestCase
     {
         $payment = Payment::factory()->create();
 
-        $this->getJson("/api/payment-requests/{$payment->id}")
+        $this->getJson("/api/payment/{$payment->id}")
             ->assertUnauthorized();
     }
 }

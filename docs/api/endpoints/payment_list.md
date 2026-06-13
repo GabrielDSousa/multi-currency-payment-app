@@ -1,6 +1,6 @@
 # List Payment Requests
 
-## GET /api/payment-requests
+## GET /api/payment
 
 Returns a paginated list of payment requests (15 items per page).
 
@@ -53,10 +53,10 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
         }
     ],
     "links": {
-        "first": "http://localhost/api/payment-requests?page=1",
-        "last": "http://localhost/api/payment-requests?page=2",
+        "first": "http://localhost/api/payment?page=1",
+        "last": "http://localhost/api/payment?page=2",
         "prev": null,
-        "next": "http://localhost/api/payment-requests?page=2"
+        "next": "http://localhost/api/payment?page=2"
     },
     "meta": {
         "current_page": 1,
