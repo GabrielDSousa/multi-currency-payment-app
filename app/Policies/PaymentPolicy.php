@@ -27,4 +27,14 @@ class PaymentPolicy
 
         return $payment->user_id === $user->id;
     }
+
+    public function approve(User $user, Payment $payment): bool
+    {
+        return $user->department === 'finance';
+    }
+
+    public function reject(User $user, Payment $payment): bool
+    {
+        return $user->department === 'finance';
+    }
 }

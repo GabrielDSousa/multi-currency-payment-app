@@ -16,4 +16,6 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('payment-requests/{payment}', [PaymentController::class, 'show'])->name('payment-requests.show');
     Route::get('payment-requests', [PaymentController::class, 'index'])->name('payment-requests.index');
+    Route::patch('payment-requests/{payment}/approve', [PaymentController::class, 'approve']);
+    Route::patch('payment-requests/{payment}/reject',  [PaymentController::class, 'reject']);
 });

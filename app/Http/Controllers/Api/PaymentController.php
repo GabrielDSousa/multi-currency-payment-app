@@ -8,6 +8,7 @@ use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\JsonResponse;
 
 class PaymentController extends Controller
 {
@@ -71,11 +72,50 @@ class PaymentController extends Controller
         );
     }
 
-
     public function show(Request $request, Payment $payment): PaymentResource
     {
         $this->authorize('view', $payment);
 
         return new PaymentResource($payment);
+    }
+
+    public function approve(Request $request, Payment $payment): JsonResponse|PaymentResource
+    {
+        $this->authorize('approve', $payment);
+
+        if (! $this->isPending($payment)) {
+            abort(400, 'Only pending requests can be approved.');
+        }
+
+        $payment->update([
+            'pending'     => false,
+            'approved_by' => $request->user()->id,
+            'approved_at' => now(),
+        ]);
+
+        return new PaymentResource($payment->fresh());
+    }
+
+    public function reject(Request $request, Payment $payment): JsonResponse|PaymentResource
+    {
+        $this->authorize('reject', $payment);
+
+        if (! $this->isPending($payment)) {
+            abort(400, 'Only pending requests can be rejected.');
+        }
+
+        $payment->update([
+            'pending'     => false,
+            'approved_by' => $request->user()->id,
+        ]);
+
+        return new PaymentResource($payment->fresh());
+    }
+
+    private function isPending(Payment $payment): bool
+    {
+        return (bool) $payment->pending
+            && $payment->approved_at === null
+            && $payment->expired_at  === null;
     }
 }
