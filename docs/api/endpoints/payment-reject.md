@@ -64,7 +64,11 @@ No body parameters required.
 #### 400 Bad Request — Payment is Not Pending
 ```json
 {
-    "message": "Only pending requests can be rejected."
+    "message": "Only pending requests can be rejected.",
+    "exception": "Symfony\\Component\\HttpKernel\\Exception\\AccessDeniedHttpException",
+    "file": "/var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Handler.php",
+    "line": 672,
+    "trace": [ ... ]
 }
 ```
 
