@@ -25,13 +25,13 @@ class PaymentFactory extends Factory
             'currency_code' => fake()->currencyCode(),
             'exchange_rate' => fake()->randomFloat(6, 0.5, 1.5),
             'amount_eur' => round($amountLocal * $exchangeRate, 4),
-            'rate_source' => 'https://api.exchangerate-api.com/',
+            'rate_source' => 'Sample Exchange Rate API',
             'rate_timestamp' => fake()->dateTimeBetween('-48 hours', 'now'),
             'pending' => fake()->boolean(80), // 80% chance of being pending
             'description' => fake()->sentence(),
             'approved_by' => null,
             'approved_at' => null,
-            'expired_at' => fake()->dateTimeBetween('now', '+48 hours'),
+            'expired_at' => null,
         ];
     }
 }
