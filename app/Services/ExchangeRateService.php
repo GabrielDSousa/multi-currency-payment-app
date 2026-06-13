@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Services;
 
 use App\Models\ExchangeRateLog;
@@ -37,8 +35,6 @@ class ExchangeRateService
             fn() => $this->callApi($currency)
         );
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
 
     private function callApi(string $currency): array
     {

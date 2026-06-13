@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Tests\Feature\Console;
 
 use App\Models\Payment;
@@ -34,7 +32,7 @@ class ExpirePaymentRequestsTest extends TestCase
             'created_at'  => Carbon::now()->subHours(49),
         ]);
 
-        Carbon::setTestNow('2026-06-10 12:00:00'); // keep "now" stable for the command
+        Carbon::setTestNow('2026-06-10 12:00:00');
 
         $this->artisan('payment:expire')->assertSuccessful();
 
@@ -62,7 +60,7 @@ class ExpirePaymentRequestsTest extends TestCase
         $this->assertEqualsWithDelta(
             $now->timestamp,
             $payment->fresh()->expired_at->timestamp,
-            5 // seconds tolerance
+            5
         );
     }
 
@@ -105,10 +103,6 @@ class ExpirePaymentRequestsTest extends TestCase
             ->assertSuccessful();
     }
 
-    // =========================================================================
-    // Boundary — exactly 48 hours
-    // =========================================================================
-
     #[Test]
     public function it_does_not_expire_a_payment_created_exactly_48_hours_ago(): void
     {
@@ -126,10 +120,6 @@ class ExpirePaymentRequestsTest extends TestCase
 
         $boundary->refresh();
 
-        // created_at == cutoff: the query uses `<=` so this IS expired.
-        // Adjust assertion to match your business rule:
-        // If the rule is "more than 48h" (strictly greater), use subHours(48)->subSecond().
-        // The current implementation uses `<=`, so exactly 48h IS expired.
         $this->assertFalse((bool) $boundary->pending);
         $this->assertNotNull($boundary->expired_at);
     }
@@ -154,10 +144,6 @@ class ExpirePaymentRequestsTest extends TestCase
         $this->assertTrue((bool) $recent->pending);
         $this->assertNull($recent->expired_at);
     }
-
-    // =========================================================================
-    // Payments that should NOT be affected
-    // =========================================================================
 
     #[Test]
     public function it_does_not_expire_already_approved_payments(): void
@@ -233,16 +219,11 @@ class ExpirePaymentRequestsTest extends TestCase
         $this->assertNull($recent->fresh()->expired_at);
     }
 
-    // =========================================================================
-    // No-op when nothing to expire
-    // =========================================================================
-
     #[Test]
     public function it_outputs_zero_when_no_payments_need_expiring(): void
     {
         Carbon::setTestNow('2026-06-10 12:00:00');
 
-        // Only a recent pending payment — should not be expired.
         Payment::factory()->create([
             'pending'    => true,
             'created_at' => Carbon::now()->subHours(5),
@@ -260,10 +241,6 @@ class ExpirePaymentRequestsTest extends TestCase
             ->expectsOutputToContain('Expired 0 payment request(s).')
             ->assertSuccessful();
     }
-
-    // =========================================================================
-    // Schedule registration
-    // =========================================================================
 
     #[Test]
     public function the_command_is_registered_in_the_scheduler(): void

@@ -9,12 +9,12 @@ use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Auth\AuthenticationException;
 
 class AuthController extends Controller
 {
-    public function register(RegisterRequest $request): Response
+    public function register(RegisterRequest $request): JsonResponse
     {
         $data = $request->validated();
 
@@ -40,7 +40,7 @@ class AuthController extends Controller
         ], 201);
     }
 
-    public function login(LoginRequest $request): Response
+    public function login(LoginRequest $request): JsonResponse
     {
         if (!Auth::attempt($request->only('email', 'password'))) {
             throw new AuthenticationException('Invalid credentials.');
@@ -63,7 +63,7 @@ class AuthController extends Controller
         ], 200);
     }
 
-    public function logout(Request $request): Response
+    public function logout(Request $request): JsonResponse
     {
         if ($request->user()->avaibleTokens()->get()->isEmpty()) {
             throw new AuthenticationException('You are logged out.');

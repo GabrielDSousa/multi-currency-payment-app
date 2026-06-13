@@ -9,9 +9,6 @@ use Illuminate\Support\Facades\Schema;
 
 class PassportPersonalClientSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         if (!Schema::hasTable('oauth_clients')) {
