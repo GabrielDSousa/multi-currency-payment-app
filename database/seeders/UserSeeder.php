@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Models\User;
 
 class UserSeeder extends Seeder
 {
@@ -28,10 +29,10 @@ class UserSeeder extends Seeder
         }
 
         // Create additional random users
-        \App\Models\User::factory()->count(9)->create();
+        User::factory()->count(9)->create();
 
         // Create a specific user for testing finance department access
-        \App\Models\User::factory()->create([
+        User::factory()->create([
             'name' => 'Finance User',
             'email' => 'finance_user@email.com',
             'password' => bcrypt('SenhaSegura123!'),
@@ -41,13 +42,21 @@ class UserSeeder extends Seeder
         ]);
 
         // Create a specific user for testing employee department access
-        \App\Models\User::factory()->create([
+        User::factory()->create([
             'name' => 'Employee User',
             'email' => 'employee_user@email.com',
             'password' => bcrypt('SenhaSegura123!'),
             'country' => 'EUA',
             'currency_code' => 'USD',
             'department' => 'employee',
+        ]);
+
+        // Create a specific user for testing authentication
+        User::factory()->create([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'country' => 'Brasil',
+            'currency_code' => 'BRL'
         ]);
     }
 }

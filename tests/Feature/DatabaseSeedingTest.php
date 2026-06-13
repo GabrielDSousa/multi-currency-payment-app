@@ -4,7 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Payment;
 use App\Models\User;
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\PaymentSeeder;
+use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
@@ -17,7 +18,8 @@ class DatabaseSeedingTest extends TestCase
     #[Test]
     public function php_artisan_db_seed_populates_data_correctly(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(UserSeeder::class);
+        $this->seed(PaymentSeeder::class);
 
         $this->assertDatabaseCount('users', 16);
         $this->assertDatabaseCount('payments', 16);
@@ -26,7 +28,8 @@ class DatabaseSeedingTest extends TestCase
     #[Test]
     public function creates_exactly_five_employees(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(UserSeeder::class);
+        $this->seed(PaymentSeeder::class);
 
         $users = User::all();
 
@@ -36,7 +39,8 @@ class DatabaseSeedingTest extends TestCase
     #[Test]
     public function users_have_realistic_and_consistent_data(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(UserSeeder::class);
+        $this->seed(PaymentSeeder::class);
 
         $expectedCountries = [
             ['name' => 'Portugal', 'currency_code' => 'EUR'],
@@ -105,7 +109,8 @@ class DatabaseSeedingTest extends TestCase
     #[Test]
     public function all_five_countries_are_represented(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(UserSeeder::class);
+        $this->seed(PaymentSeeder::class);
 
         $countries = DB::table('users')->pluck('country')->toArray();
         $currencies = DB::table('users')->pluck('currency_code')->toArray();
@@ -142,7 +147,8 @@ class DatabaseSeedingTest extends TestCase
     #[Test]
     public function seeder_creates_payments_linked_to_users(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(UserSeeder::class);
+        $this->seed(PaymentSeeder::class);
 
         $payments = Payment::all();
 
