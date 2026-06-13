@@ -361,11 +361,19 @@ class ExchangeRateServiceTest extends TestCase
     #[Test]
     public function payment_is_pending_by_default_on_creation(): void
     {
-        $payment = Payment::factory()->create();
+        $payment = Payment::create([
+            'user_id'        => User::factory()->create()->id,
+            'amount_local'   => 100.00,
+            'currency_code'  => 'USD',
+            'exchange_rate'  => 1.08,
+            'rate_source'    => config('services.exchangerate_api.source'),
+            'rate_timestamp' => now()->toISOString(),
+            'amount_eur'     => round(100.00 / 1.08, 2),
+            'description'    => 'Test payment',
+        ])->fresh();
 
-        // Accepts both boolean true and string 'pending' depending on implementation.
         $this->assertTrue(
-            $payment->pending === true || $payment->pending === 1,
+            $payment->pending === true,
             'A newly created payment must be in pending state.'
         );
     }
