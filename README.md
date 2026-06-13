@@ -144,6 +144,15 @@ Authorization: Bearer <your_token_here>
 
 ---
 
+## Verifying the schedule payment expire command
+
+```bash
+./vendor/bin/sail artisan schedule:run
+./vendor/bin/sail artisan schedule:list
+```
+
+---
+
 ## API Reference
 
 Full specification: [`openapi.yaml`](openapi.yaml)
