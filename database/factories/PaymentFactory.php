@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Payment;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -19,8 +20,9 @@ class PaymentFactory extends Factory
     {
         $amountLocal = fake()->randomFloat(4, 10, 1000);
         $exchangeRate = fake()->randomFloat(6, 0.5, 1.5);
+
         return [
-            'user_id' => \App\Models\User::factory(),
+            'user_id' => User::factory(),
             'amount_local' => fake()->randomFloat(4, 10, 1000),
             'currency_code' => fake()->currencyCode(),
             'exchange_rate' => fake()->randomFloat(6, 0.5, 1.5),

@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class HealthCheckService
@@ -18,7 +18,7 @@ class HealthCheckService
             'app' => $this->checkApp(),
         ];
 
-        $allHealthy = collect($checks)->every(fn($check) => $check['status'] === 'healthy');
+        $allHealthy = collect($checks)->every(fn ($check) => $check['status'] === 'healthy');
 
         return [
             'status' => $allHealthy ? 'healthy' : 'unhealthy',
@@ -33,6 +33,7 @@ class HealthCheckService
     {
         try {
             DB::connection()->getPdo();
+
             return ['status' => 'healthy', 'message' => 'Database connection OK'];
         } catch (\Exception $e) {
             return ['status' => 'unhealthy', 'message' => $e->getMessage()];
@@ -61,6 +62,7 @@ class HealthCheckService
             if ($connection === 'database') {
                 DB::table('jobs')->count();
             }
+
             return ['status' => 'healthy', 'message' => "Queue driver [{$connection}] OK"];
         } catch (\Exception $e) {
             return ['status' => 'unhealthy', 'message' => $e->getMessage()];
@@ -70,7 +72,7 @@ class HealthCheckService
     private function checkStorage(): array
     {
         try {
-            $testFile = 'health_check_' . uniqid() . '.txt';
+            $testFile = 'health_check_'.uniqid().'.txt';
             Storage::disk('local')->put($testFile, 'health_check');
             $content = Storage::disk('local')->get($testFile);
             Storage::disk('local')->delete($testFile);
@@ -87,9 +89,9 @@ class HealthCheckService
     {
         return [
             'status' => 'healthy',
-            'message' => 'Laravel ' . app()->version() . ' running',
+            'message' => 'Laravel '.app()->version().' running',
             'php_version' => PHP_VERSION,
-            'memory_usage' => round(memory_get_usage(true) / 1024 / 1024, 2) . ' MB',
+            'memory_usage' => round(memory_get_usage(true) / 1024 / 1024, 2).' MB',
         ];
     }
 }

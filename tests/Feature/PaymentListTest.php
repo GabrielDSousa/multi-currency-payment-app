@@ -4,11 +4,11 @@ namespace Tests\Feature\Api;
 
 use App\Models\Payment;
 use App\Models\User;
-use Laravel\Passport\Passport;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Passport\Passport;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
-use Carbon\Carbon;
 use Tests\TestCase;
 
 #[Group('payment-list')]
@@ -19,9 +19,9 @@ class PaymentListTest extends TestCase
     #[Test]
     public function employee_sees_only_their_own_payments(): void
     {
-        /** @var \App\Models\User $employee */
+        /** @var User $employee */
         $employee = User::factory()->create(['department' => 'employee']);
-        $other    = User::factory()->create(['department' => 'employee']);
+        $other = User::factory()->create(['department' => 'employee']);
 
         Payment::factory()->count(3)->create(['user_id' => $employee->id]);
         Payment::factory()->count(2)->create(['user_id' => $other->id]);
@@ -36,7 +36,7 @@ class PaymentListTest extends TestCase
     #[Test]
     public function finance_sees_all_payments(): void
     {
-        /** @var \App\Models\User $finance */
+        /** @var User $finance */
         $finance = User::factory()->create(['department' => 'finance']);
         Payment::factory()->count(5)->create();
 
@@ -50,8 +50,8 @@ class PaymentListTest extends TestCase
     #[Test]
     public function finance_can_filter_by_employee_id(): void
     {
-        /** @var \App\Models\User $finance */
-        $finance  = User::factory()->create(['department' => 'finance']);
+        /** @var User $finance */
+        $finance = User::factory()->create(['department' => 'finance']);
         $employee = User::factory()->create(['department' => 'employee']);
 
         Payment::factory()->count(2)->create(['user_id' => $employee->id]);
@@ -67,7 +67,7 @@ class PaymentListTest extends TestCase
     #[Test]
     public function filter_by_pending_status_returns_only_pending_payments(): void
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = User::factory()->create(['department' => 'finance']);
 
         Payment::factory()->create(['pending' => true,  'approved_at' => null, 'expired_at' => null]);
@@ -84,7 +84,7 @@ class PaymentListTest extends TestCase
     #[Test]
     public function filter_by_approved_status_returns_only_approved_payments(): void
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = User::factory()->create(['department' => 'finance']);
 
         Payment::factory()->create(['pending' => false, 'approved_at' => now(), 'expired_at' => null]);
@@ -101,7 +101,7 @@ class PaymentListTest extends TestCase
     #[Test]
     public function filter_by_expired_status_returns_only_expired_payments(): void
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = User::factory()->create(['department' => 'finance']);
 
         Payment::factory()->create(['expired_at' => now()->subDay()]);
@@ -118,7 +118,7 @@ class PaymentListTest extends TestCase
     #[Test]
     public function filter_by_currency_returns_only_matching_payments(): void
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = User::factory()->create(['department' => 'finance']);
 
         Payment::factory()->create(['currency_code' => 'BRL']);
@@ -135,7 +135,7 @@ class PaymentListTest extends TestCase
     #[Test]
     public function filter_by_date_from_excludes_older_payments(): void
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = User::factory()->create(['department' => 'finance']);
 
         Payment::factory()->create(['created_at' => Carbon::parse('2026-01-01')]);
@@ -151,7 +151,7 @@ class PaymentListTest extends TestCase
     #[Test]
     public function filter_by_date_range_returns_payments_within_range(): void
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = User::factory()->create(['department' => 'finance']);
 
         Payment::factory()->create(['created_at' => Carbon::parse('2026-05-15')]);
@@ -168,7 +168,7 @@ class PaymentListTest extends TestCase
     #[Test]
     public function response_is_paginated_with_15_items_per_page(): void
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = User::factory()->create(['department' => 'finance']);
         Payment::factory()->count(20)->create();
 
@@ -185,9 +185,9 @@ class PaymentListTest extends TestCase
     #[Test]
     public function employee_can_fetch_their_own_payment_detail(): void
     {
-        /** @var \App\Models\User $employee */
+        /** @var User $employee */
         $employee = User::factory()->create(['department' => 'employee']);
-        $payment  = Payment::factory()->create(['user_id' => $employee->id]);
+        $payment = Payment::factory()->create(['user_id' => $employee->id]);
 
         Passport::actingAs($employee);
 
@@ -199,9 +199,9 @@ class PaymentListTest extends TestCase
     #[Test]
     public function employee_gets_403_when_fetching_another_users_payment(): void
     {
-        /** @var \App\Models\User $employee */
+        /** @var User $employee */
         $employee = User::factory()->create(['department' => 'employee']);
-        $payment  = Payment::factory()->create(); // belongs to another user
+        $payment = Payment::factory()->create(); // belongs to another user
 
         Passport::actingAs($employee);
 
@@ -212,7 +212,7 @@ class PaymentListTest extends TestCase
     #[Test]
     public function finance_can_fetch_any_payment_detail(): void
     {
-        /** @var \App\Models\User $finance */
+        /** @var User $finance */
         $finance = User::factory()->create(['department' => 'finance']);
         $payment = Payment::factory()->create();
 

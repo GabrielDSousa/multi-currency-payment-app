@@ -11,8 +11,9 @@ class PassportPersonalClientSeeder extends Seeder
 {
     public function run(): void
     {
-        if (!Schema::hasTable('oauth_clients')) {
+        if (! Schema::hasTable('oauth_clients')) {
             $this->command->error('The oauth_clients table does not exist. Please run the migrations first.');
+
             return;
         }
 
@@ -27,12 +28,13 @@ class PassportPersonalClientSeeder extends Seeder
 
         if ($exists) {
             $this->command->info('Personal access client already exists. Skipping seeding.');
+
             return;
         }
 
         Artisan::call('passport:client', [
-            '--personal'    => true,
-            '--no-interaction'      => true,
+            '--personal' => true,
+            '--no-interaction' => true,
         ]);
     }
 }

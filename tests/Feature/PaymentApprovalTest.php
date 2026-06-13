@@ -28,10 +28,10 @@ class PaymentApprovalTest extends TestCase
     private function pendingPayment(array $overrides = []): Payment
     {
         return Payment::factory()->create(array_merge([
-            'pending'     => true,
+            'pending' => true,
             'approved_at' => null,
             'approved_by' => null,
-            'expired_at'  => null,
+            'expired_at' => null,
         ], $overrides));
     }
 
@@ -48,8 +48,8 @@ class PaymentApprovalTest extends TestCase
             ->assertJsonPath('data.status', 'approved');
 
         $this->assertDatabaseHas('payments', [
-            'id'          => $payment->id,
-            'pending'     => false,
+            'id' => $payment->id,
+            'pending' => false,
             'approved_by' => $finance->id,
         ]);
 
@@ -109,8 +109,8 @@ class PaymentApprovalTest extends TestCase
             ->assertJsonPath('data.status', 'rejected');
 
         $this->assertDatabaseHas('payments', [
-            'id'          => $payment->id,
-            'pending'     => false,
+            'id' => $payment->id,
+            'pending' => false,
             'approved_by' => $finance->id,
         ]);
     }
@@ -145,7 +145,7 @@ class PaymentApprovalTest extends TestCase
     public function employee_cannot_approve_a_payment(): void
     {
         $employee = $this->employeeUser();
-        $payment  = $this->pendingPayment();
+        $payment = $this->pendingPayment();
 
         Passport::actingAs($employee);
 
@@ -157,7 +157,7 @@ class PaymentApprovalTest extends TestCase
     public function employee_cannot_reject_a_payment(): void
     {
         $employee = $this->employeeUser();
-        $payment  = $this->pendingPayment();
+        $payment = $this->pendingPayment();
 
         Passport::actingAs($employee);
 
@@ -188,7 +188,7 @@ class PaymentApprovalTest extends TestCase
     {
         $finance = $this->financeUser();
         $payment = Payment::factory()->create([
-            'pending'     => false,
+            'pending' => false,
             'approved_at' => now(),
             'approved_by' => $finance->id,
         ]);
@@ -205,9 +205,9 @@ class PaymentApprovalTest extends TestCase
     {
         $finance = $this->financeUser();
         $payment = Payment::factory()->create([
-            'pending'     => false,
+            'pending' => false,
             'approved_at' => null,
-            'expired_at'  => null,
+            'expired_at' => null,
         ]);
 
         Passport::actingAs($finance);
@@ -222,7 +222,7 @@ class PaymentApprovalTest extends TestCase
     {
         $finance = $this->financeUser();
         $payment = Payment::factory()->create([
-            'pending'    => false,
+            'pending' => false,
             'expired_at' => now()->subDay(),
         ]);
 
@@ -238,7 +238,7 @@ class PaymentApprovalTest extends TestCase
     {
         $finance = $this->financeUser();
         $payment = Payment::factory()->create([
-            'pending'     => false,
+            'pending' => false,
             'approved_at' => now(),
             'approved_by' => $finance->id,
         ]);
@@ -255,9 +255,9 @@ class PaymentApprovalTest extends TestCase
     {
         $finance = $this->financeUser();
         $payment = Payment::factory()->create([
-            'pending'     => false,
+            'pending' => false,
             'approved_at' => null,
-            'expired_at'  => null,
+            'expired_at' => null,
         ]);
 
         Passport::actingAs($finance);
@@ -272,7 +272,7 @@ class PaymentApprovalTest extends TestCase
     {
         $finance = $this->financeUser();
         $payment = Payment::factory()->create([
-            'pending'    => false,
+            'pending' => false,
             'expired_at' => now()->subDay(),
         ]);
 

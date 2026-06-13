@@ -25,7 +25,7 @@ class ExchangeRateServiceTest extends TestCase
 
     private ExchangeRateService $service;
 
-    private const CACHE_KEY_PREFIX  = 'exchange_rate_EUR_';
+    private const CACHE_KEY_PREFIX = 'exchange_rate_EUR_';
 
     protected function setUp(): void
     {
@@ -154,8 +154,8 @@ class ExchangeRateServiceTest extends TestCase
         $this->service->fetchRate('BRL');
 
         $this->assertTrue(
-            Cache::has(self::CACHE_KEY_PREFIX . 'BRL'),
-            'Expected cache key "' . self::CACHE_KEY_PREFIX . 'BRL" to exist after fetch.'
+            Cache::has(self::CACHE_KEY_PREFIX.'BRL'),
+            'Expected cache key "'.self::CACHE_KEY_PREFIX.'BRL" to exist after fetch.'
         );
     }
 
@@ -166,7 +166,7 @@ class ExchangeRateServiceTest extends TestCase
             '*EUR/USD*' => Http::response($this->buildApiResponse('USD', 1.08), 200),
         ]);
 
-        $first  = $this->service->fetchRate('USD');
+        $first = $this->service->fetchRate('USD');
         $second = $this->service->fetchRate('USD');
 
         $this->assertEquals($first, $second);
@@ -183,11 +183,11 @@ class ExchangeRateServiceTest extends TestCase
         $this->service->fetchRate('USD');
         $this->service->fetchRate('BRL');
 
-        $this->assertTrue(Cache::has(self::CACHE_KEY_PREFIX . 'USD'));
-        $this->assertTrue(Cache::has(self::CACHE_KEY_PREFIX . 'BRL'));
+        $this->assertTrue(Cache::has(self::CACHE_KEY_PREFIX.'USD'));
+        $this->assertTrue(Cache::has(self::CACHE_KEY_PREFIX.'BRL'));
 
-        $usdRate = Cache::get(self::CACHE_KEY_PREFIX . 'USD');
-        $brlRate = Cache::get(self::CACHE_KEY_PREFIX . 'BRL');
+        $usdRate = Cache::get(self::CACHE_KEY_PREFIX.'USD');
+        $brlRate = Cache::get(self::CACHE_KEY_PREFIX.'BRL');
         $this->assertNotEquals($usdRate['rate'], $brlRate['rate']);
     }
 
@@ -202,7 +202,7 @@ class ExchangeRateServiceTest extends TestCase
         Http::assertSentCount(1);
 
         // Simulate cache expiry.
-        Cache::forget(self::CACHE_KEY_PREFIX . 'USD');
+        Cache::forget(self::CACHE_KEY_PREFIX.'USD');
 
         $this->service->fetchRate('USD');
         Http::assertSentCount(2);
@@ -219,11 +219,11 @@ class ExchangeRateServiceTest extends TestCase
 
         $this->service->fetchRate('GBP');
 
-        $this->assertTrue(Cache::has(self::CACHE_KEY_PREFIX . 'GBP'));
+        $this->assertTrue(Cache::has(self::CACHE_KEY_PREFIX.'GBP'));
 
         $this->travel(59)->minutes();
         $this->assertTrue(
-            Cache::has(self::CACHE_KEY_PREFIX . 'GBP'),
+            Cache::has(self::CACHE_KEY_PREFIX.'GBP'),
             'Cache should still be valid at 59 minutes.'
         );
     }
@@ -256,7 +256,7 @@ class ExchangeRateServiceTest extends TestCase
     public function it_throws_an_exception_on_network_connection_failure(): void
     {
         Http::fake([
-            '*' => fn() => throw new ConnectionException('Connection refused'),
+            '*' => fn () => throw new ConnectionException('Connection refused'),
         ]);
 
         $this->expectException(\Exception::class);
@@ -273,7 +273,7 @@ class ExchangeRateServiceTest extends TestCase
 
         Log::shouldReceive('error')
             ->once()
-            ->withArgs(fn(string $message) => str_contains($message, 'USD'));
+            ->withArgs(fn (string $message) => str_contains($message, 'USD'));
 
         try {
             $this->service->fetchRate('USD');
@@ -296,7 +296,7 @@ class ExchangeRateServiceTest extends TestCase
         }
 
         $this->assertFalse(
-            Cache::has(self::CACHE_KEY_PREFIX . 'USD'),
+            Cache::has(self::CACHE_KEY_PREFIX.'USD'),
             'A failed API call must not populate the cache.'
         );
     }
@@ -343,7 +343,7 @@ class ExchangeRateServiceTest extends TestCase
             'expired_at',
         ];
 
-        $fillable = (new Payment())->getFillable();
+        $fillable = (new Payment)->getFillable();
 
         foreach ($expectedFillable as $field) {
             $this->assertContains(
@@ -358,14 +358,14 @@ class ExchangeRateServiceTest extends TestCase
     public function payment_is_pending_by_default_on_creation(): void
     {
         $payment = Payment::create([
-            'user_id'        => User::factory()->create()->id,
-            'amount_local'   => 100.00,
-            'currency_code'  => 'USD',
-            'exchange_rate'  => 1.08,
-            'rate_source'    => config('services.exchangerate_api.source'),
+            'user_id' => User::factory()->create()->id,
+            'amount_local' => 100.00,
+            'currency_code' => 'USD',
+            'exchange_rate' => 1.08,
+            'rate_source' => config('services.exchangerate_api.source'),
             'rate_timestamp' => now()->toISOString(),
-            'amount_eur'     => round(100.00 / 1.08, 2),
-            'description'    => 'Test payment',
+            'amount_eur' => round(100.00 / 1.08, 2),
+            'description' => 'Test payment',
         ])->fresh();
 
         $this->assertTrue(
@@ -406,20 +406,20 @@ class ExchangeRateServiceTest extends TestCase
         $rateData = $this->service->fetchRate('BRL');
 
         $payment = Payment::factory()->create([
-            'user_id'        => $user->id,
-            'amount_local'   => 1000.00,
-            'currency_code'  => 'BRL',
-            'exchange_rate'  => $rateData['rate'],
-            'rate_source'    => $rateData['source'],
+            'user_id' => $user->id,
+            'amount_local' => 1000.00,
+            'currency_code' => 'BRL',
+            'exchange_rate' => $rateData['rate'],
+            'rate_source' => $rateData['source'],
             'rate_timestamp' => $rateData['timestamp'],
-            'amount_eur'     => round(1000.00 / $rateData['rate'], 2),
+            'amount_eur' => round(1000.00 / $rateData['rate'], 2),
         ]);
 
         $this->assertDatabaseHas('payments', [
-            'id'            => $payment->id,
+            'id' => $payment->id,
             'currency_code' => 'BRL',
             'exchange_rate' => 5.42,
-            'rate_source'   => config('services.exchangerate_api.source'),
+            'rate_source' => config('services.exchangerate_api.source'),
         ]);
     }
 
@@ -427,14 +427,14 @@ class ExchangeRateServiceTest extends TestCase
     public function payment_eur_amount_is_correctly_computed_from_rate(): void
     {
         $amountLocal = 1000.00;
-        $rate        = 5.42;
+        $rate = 5.42;
         $expectedEur = round($amountLocal / $rate, 2);
 
         $payment = Payment::factory()->create([
-            'amount_local'  => $amountLocal,
+            'amount_local' => $amountLocal,
             'currency_code' => 'BRL',
             'exchange_rate' => $rate,
-            'amount_eur'    => $expectedEur,
+            'amount_eur' => $expectedEur,
         ]);
 
         $this->assertEquals($expectedEur, (float) $payment->amount_eur);
@@ -446,8 +446,8 @@ class ExchangeRateServiceTest extends TestCase
         $originalRate = 5.42;
 
         $payment = Payment::factory()->create([
-            'exchange_rate'  => $originalRate,
-            'rate_source'    => config('services.exchangerate_api.source'),
+            'exchange_rate' => $originalRate,
+            'rate_source' => config('services.exchangerate_api.source'),
             'rate_timestamp' => now()->toISOString(),
         ]);
 
@@ -471,12 +471,12 @@ class ExchangeRateServiceTest extends TestCase
         $now = now()->toISOString();
 
         $payment = Payment::factory()->create([
-            'rate_source'    => config('services.exchangerate_api.source'),
+            'rate_source' => config('services.exchangerate_api.source'),
             'rate_timestamp' => $now,
         ]);
 
         $this->assertDatabaseHas('payments', [
-            'id'          => $payment->id,
+            'id' => $payment->id,
             'rate_source' => config('services.exchangerate_api.source'),
         ]);
 
@@ -493,9 +493,9 @@ class ExchangeRateServiceTest extends TestCase
         $this->service->fetchRate('USD');
 
         $this->assertDatabaseHas('exchange_rate_logs', [
-            'base_currency'   => 'EUR',
+            'base_currency' => 'EUR',
             'target_currency' => 'USD',
-            'source'          => config('services.exchangerate_api.source'),
+            'source' => config('services.exchangerate_api.source'),
         ]);
     }
 
@@ -518,16 +518,16 @@ class ExchangeRateServiceTest extends TestCase
             ]);
 
             // Clear cache between pairs so each one hits the API.
-            Cache::forget(self::CACHE_KEY_PREFIX . $currency);
+            Cache::forget(self::CACHE_KEY_PREFIX.$currency);
 
             $this->service->fetchRate($currency);
         }
 
         foreach (array_keys($pairs) as $currency) {
             $this->assertDatabaseHas('exchange_rate_logs', [
-                'base_currency'   => 'EUR',
+                'base_currency' => 'EUR',
                 'target_currency' => $currency,
-                'source'          => config('services.exchangerate_api.source'),
+                'source' => config('services.exchangerate_api.source'),
             ]);
         }
     }
@@ -539,14 +539,14 @@ class ExchangeRateServiceTest extends TestCase
     private function buildApiResponse(string $targetCurrency, float $rate): array
     {
         return [
-            'result'                => 'success',
-            'documentation'         => 'https://www.exchangerate-api.com/docs',
-            'terms_of_use'          => 'https://www.exchangerate-api.com/terms',
-            'base_code'             => 'EUR',
-            'target_code'           => $targetCurrency,
-            'conversion_rate'       => $rate,
+            'result' => 'success',
+            'documentation' => 'https://www.exchangerate-api.com/docs',
+            'terms_of_use' => 'https://www.exchangerate-api.com/terms',
+            'base_code' => 'EUR',
+            'target_code' => $targetCurrency,
+            'conversion_rate' => $rate,
             'time_last_update_unix' => Carbon::now()->timestamp,
-            'time_last_update_utc'  => Carbon::now()->toRfc7231String(),
+            'time_last_update_utc' => Carbon::now()->toRfc7231String(),
         ];
     }
 }

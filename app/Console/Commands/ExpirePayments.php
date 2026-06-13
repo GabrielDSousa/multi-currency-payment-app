@@ -8,7 +8,8 @@ use Illuminate\Support\Carbon;
 
 class ExpirePayments extends Command
 {
-    protected $signature   = 'payment:expire';
+    protected $signature = 'payment:expire';
+
     protected $description = 'Expire payment requests that have been pending for more than 48 hours.';
 
     public function handle(): int
@@ -21,7 +22,7 @@ class ExpirePayments extends Command
             ->whereNull('expired_at')
             ->where('created_at', '<=', $cutoff)
             ->update([
-                'pending'    => false,
+                'pending' => false,
                 'expired_at' => Carbon::now(),
             ]);
 
