@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Services\HealthCheckService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class HealthCheckController extends Controller
 {
@@ -16,7 +16,7 @@ class HealthCheckController extends Controller
     {
         $result = $this->healthCheck->check();
 
-        if (!$result['status'] === 'healthy') {
+        if (! $result['status'] === 'healthy') {
             abort(503, $result);
         }
 

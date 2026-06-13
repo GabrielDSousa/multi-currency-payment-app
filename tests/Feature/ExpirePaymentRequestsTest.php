@@ -3,6 +3,7 @@
 namespace Tests\Feature\Console;
 
 use App\Models\Payment;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\Attributes\Group;
@@ -26,10 +27,10 @@ class ExpirePaymentRequestsTest extends TestCase
         Carbon::setTestNow('2026-06-10 12:00:00');
 
         $old = Payment::factory()->create([
-            'pending'    => true,
+            'pending' => true,
             'approved_at' => null,
-            'expired_at'  => null,
-            'created_at'  => Carbon::now()->subHours(49),
+            'expired_at' => null,
+            'created_at' => Carbon::now()->subHours(49),
         ]);
 
         Carbon::setTestNow('2026-06-10 12:00:00');
@@ -49,10 +50,10 @@ class ExpirePaymentRequestsTest extends TestCase
         Carbon::setTestNow($now);
 
         $payment = Payment::factory()->create([
-            'pending'     => true,
+            'pending' => true,
             'approved_at' => null,
-            'expired_at'  => null,
-            'created_at'  => $now->copy()->subHours(49),
+            'expired_at' => null,
+            'created_at' => $now->copy()->subHours(49),
         ]);
 
         $this->artisan('payment:expire')->assertSuccessful();
@@ -70,10 +71,10 @@ class ExpirePaymentRequestsTest extends TestCase
         Carbon::setTestNow('2026-06-10 12:00:00');
 
         Payment::factory()->count(3)->create([
-            'pending'     => true,
+            'pending' => true,
             'approved_at' => null,
-            'expired_at'  => null,
-            'created_at'  => Carbon::now()->subHours(72),
+            'expired_at' => null,
+            'created_at' => Carbon::now()->subHours(72),
         ]);
 
         $this->artisan('payment:expire')
@@ -92,10 +93,10 @@ class ExpirePaymentRequestsTest extends TestCase
         Carbon::setTestNow('2026-06-10 12:00:00');
 
         Payment::factory()->count(2)->create([
-            'pending'     => true,
+            'pending' => true,
             'approved_at' => null,
-            'expired_at'  => null,
-            'created_at'  => Carbon::now()->subHours(50),
+            'expired_at' => null,
+            'created_at' => Carbon::now()->subHours(50),
         ]);
 
         $this->artisan('payment:expire')
@@ -110,10 +111,10 @@ class ExpirePaymentRequestsTest extends TestCase
         Carbon::setTestNow($now);
 
         $boundary = Payment::factory()->create([
-            'pending'     => true,
+            'pending' => true,
             'approved_at' => null,
-            'expired_at'  => null,
-            'created_at'  => $now->copy()->subHours(48),
+            'expired_at' => null,
+            'created_at' => $now->copy()->subHours(48),
         ]);
 
         $this->artisan('payment:expire')->assertSuccessful();
@@ -131,10 +132,10 @@ class ExpirePaymentRequestsTest extends TestCase
         Carbon::setTestNow($now);
 
         $recent = Payment::factory()->create([
-            'pending'     => true,
+            'pending' => true,
             'approved_at' => null,
-            'expired_at'  => null,
-            'created_at'  => $now->copy()->subHours(47),
+            'expired_at' => null,
+            'created_at' => $now->copy()->subHours(47),
         ]);
 
         $this->artisan('payment:expire')->assertSuccessful();
@@ -151,10 +152,10 @@ class ExpirePaymentRequestsTest extends TestCase
         Carbon::setTestNow('2026-06-10 12:00:00');
 
         $approved = Payment::factory()->create([
-            'pending'     => false,
+            'pending' => false,
             'approved_at' => Carbon::now()->subHours(50),
-            'expired_at'  => null,
-            'created_at'  => Carbon::now()->subHours(50),
+            'expired_at' => null,
+            'created_at' => Carbon::now()->subHours(50),
         ]);
 
         $this->artisan('payment:expire')->assertSuccessful();
@@ -168,10 +169,10 @@ class ExpirePaymentRequestsTest extends TestCase
         Carbon::setTestNow('2026-06-10 12:00:00');
 
         $rejected = Payment::factory()->create([
-            'pending'     => false,
+            'pending' => false,
             'approved_at' => null,
-            'expired_at'  => null,
-            'created_at'  => Carbon::now()->subHours(50),
+            'expired_at' => null,
+            'created_at' => Carbon::now()->subHours(50),
         ]);
 
         $this->artisan('payment:expire')->assertSuccessful();
@@ -187,10 +188,10 @@ class ExpirePaymentRequestsTest extends TestCase
         $originalExpiredAt = Carbon::now()->subHours(10);
 
         $alreadyExpired = Payment::factory()->create([
-            'pending'     => false,
+            'pending' => false,
             'approved_at' => null,
-            'expired_at'  => $originalExpiredAt,
-            'created_at'  => Carbon::now()->subHours(50),
+            'expired_at' => $originalExpiredAt,
+            'created_at' => Carbon::now()->subHours(50),
         ]);
 
         $this->artisan('payment:expire')->assertSuccessful();
@@ -207,10 +208,10 @@ class ExpirePaymentRequestsTest extends TestCase
         Carbon::setTestNow('2026-06-10 12:00:00');
 
         $recent = Payment::factory()->create([
-            'pending'     => true,
+            'pending' => true,
             'approved_at' => null,
-            'expired_at'  => null,
-            'created_at'  => Carbon::now()->subHours(10),
+            'expired_at' => null,
+            'created_at' => Carbon::now()->subHours(10),
         ]);
 
         $this->artisan('payment:expire')->assertSuccessful();
@@ -225,7 +226,7 @@ class ExpirePaymentRequestsTest extends TestCase
         Carbon::setTestNow('2026-06-10 12:00:00');
 
         Payment::factory()->create([
-            'pending'    => true,
+            'pending' => true,
             'created_at' => Carbon::now()->subHours(5),
         ]);
 
@@ -245,11 +246,11 @@ class ExpirePaymentRequestsTest extends TestCase
     #[Test]
     public function the_command_is_registered_in_the_scheduler(): void
     {
-        $schedule = app(\Illuminate\Console\Scheduling\Schedule::class);
+        $schedule = app(Schedule::class);
 
         $commands = collect($schedule->events())
-            ->map(fn($e) => $e->command ?? '')
-            ->filter(fn($cmd) => str_contains($cmd, 'payment:expire'));
+            ->map(fn ($e) => $e->command ?? '')
+            ->filter(fn ($cmd) => str_contains($cmd, 'payment:expire'));
 
         $this->assertNotEmpty(
             $commands,

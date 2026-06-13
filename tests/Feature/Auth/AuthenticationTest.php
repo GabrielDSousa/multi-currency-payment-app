@@ -6,8 +6,8 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[Group('auth')]
@@ -15,7 +15,7 @@ class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         Artisan::call('passport:client --personal --no-interaction');
@@ -63,7 +63,7 @@ class AuthenticationTest extends TestCase
             'password' => 'SenhaSegura123!',
             'password_confirmation' => 'SenhaSegura123!',
             'country' => 'BR',
-            'currency_code' => 'BRL'
+            'currency_code' => 'BRL',
         ];
 
         $response = $this->postJson('/api/register', $payload);
@@ -79,7 +79,7 @@ class AuthenticationTest extends TestCase
             'password' => 'weakpass',
             'password_confirmation' => 'weakpass',
             'country' => 'BR',
-            'currency_code' => 'BRL'
+            'currency_code' => 'BRL',
         ];
 
         $response = $this->postJson('/api/register', $payload);
@@ -97,7 +97,7 @@ class AuthenticationTest extends TestCase
             'password' => 'SenhaSegura123!',
             'password_confirmation' => 'SenhaSegura123!',
             'country' => 'BR',
-            'currency_code' => 'BRL'
+            'currency_code' => 'BRL',
         ];
 
         $response = $this->postJson('/api/register', $payload);
@@ -113,7 +113,7 @@ class AuthenticationTest extends TestCase
             'password' => 'SenhaSegura123!',
             'password_confirmation' => 'SenhaSegura123!',
             'country' => 'XX',
-            'currency_code' => 'BRL'
+            'currency_code' => 'BRL',
         ];
 
         $response = $this->postJson('/api/register', $payload);
@@ -129,7 +129,7 @@ class AuthenticationTest extends TestCase
             'password' => 'SenhaSegura123!',
             'password_confirmation' => 'SenhaSegura123!',
             'country' => 'BR',
-            'currency_code' => 'XXX'
+            'currency_code' => 'XXX',
         ];
 
         $response = $this->postJson('/api/register', $payload);
@@ -146,7 +146,7 @@ class AuthenticationTest extends TestCase
             'password_confirmation' => 'SenhaSegura123!',
             'country' => 'BR',
             'currency_code' => 'BRL',
-            'departament' => 'unknown'
+            'departament' => 'unknown',
         ];
 
         $response = $this->postJson('/api/register', $payload);

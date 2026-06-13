@@ -41,7 +41,7 @@ class UserFactory extends Factory
      */
     public function unverified(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
     }
@@ -51,8 +51,8 @@ class UserFactory extends Factory
      */
     public function testPassword(): static
     {
-        return $this->state(fn(array $attributes) => [
-            'password' => bcrypt('SenhaSegura123!')
+        return $this->state(fn (array $attributes) => [
+            'password' => bcrypt('SenhaSegura123!'),
         ]);
     }
 
@@ -61,7 +61,7 @@ class UserFactory extends Factory
      */
     public function finance(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'department' => 'finance',
         ]);
     }
@@ -71,7 +71,7 @@ class UserFactory extends Factory
      */
     public function employee(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'department' => 'employee',
         ]);
     }
@@ -79,30 +79,30 @@ class UserFactory extends Factory
     /**
      * Indicate that the email should be custom
      */
-    public function email(String $email): static
+    public function email(string $email): static
     {
-        return $this->state(fn(array $attributes) => [
-            'email' => $email
+        return $this->state(fn (array $attributes) => [
+            'email' => $email,
         ]);
     }
 
     /**
      * Indicate that the country should be custom
      */
-    public function from(String $country): static
+    public function from(string $country): static
     {
-        return $this->state(fn(array $attributes) => [
-            'country' => $country
+        return $this->state(fn (array $attributes) => [
+            'country' => $country,
         ]);
     }
 
     /**
      * Indicate that the currency should be custom
      */
-    public function currency(String $currency): static
+    public function currency(string $currency): static
     {
-        return $this->state(fn(array $attributes) => [
-            'currency_code' => $currency
+        return $this->state(fn (array $attributes) => [
+            'currency_code' => $currency,
         ]);
     }
 }

@@ -8,8 +8,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\Contracts\OAuthenticatable;
 use Laravel\Passport\HasApiTokens;
-use Laravel\Passport\Token;
 use Laravel\Passport\PersonalAccessTokenResult;
+use Laravel\Passport\Token;
 
 class User extends Authenticatable implements OAuthenticatable
 {

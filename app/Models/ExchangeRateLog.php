@@ -15,7 +15,7 @@ class ExchangeRateLog extends Model
     ];
 
     protected $casts = [
-        'rate'       => 'float',
+        'rate' => 'float',
         'fetched_at' => 'datetime',
     ];
 }

@@ -13,8 +13,10 @@ use RuntimeException;
 class ExchangeRateService
 {
     private const BASE_CURRENCY = 'EUR';
-    private const CACHE_TTL     = 3600;
-    private const API_TIMEOUT   = 10;
+
+    private const CACHE_TTL = 3600;
+
+    private const API_TIMEOUT = 10;
 
     /**
      * Return the EUR → $currency exchange rate.
@@ -27,12 +29,12 @@ class ExchangeRateService
     public function fetchRate(string $currency): array
     {
         $currency = strtoupper($currency);
-        $cacheKey = 'exchange_rate_' . self::BASE_CURRENCY . '_' . $currency;
+        $cacheKey = 'exchange_rate_'.self::BASE_CURRENCY.'_'.$currency;
 
         return Cache::remember(
             $cacheKey,
             self::CACHE_TTL,
-            fn() => $this->callApi($currency)
+            fn () => $this->callApi($currency)
         );
     }
 
@@ -43,7 +45,7 @@ class ExchangeRateService
 
         try {
             $response = Http::timeout(self::API_TIMEOUT)
-                ->get("{$source}{$apiKey}/pair/" . self::BASE_CURRENCY . "/{$currency}");
+                ->get("{$source}{$apiKey}/pair/".self::BASE_CURRENCY."/{$currency}");
 
             if ($response->failed()) {
                 throw new RuntimeException(
@@ -55,13 +57,13 @@ class ExchangeRateService
 
             if (($data['result'] ?? '') !== 'success') {
                 throw new RuntimeException(
-                    "Exchange rate API error for EUR→{$currency}: " . ($data['error-type'] ?? 'unknown')
+                    "Exchange rate API error for EUR→{$currency}: ".($data['error-type'] ?? 'unknown')
                 );
             }
 
             $result = [
-                'rate'      => (float) $data['conversion_rate'],
-                'source'    => config('services.exchangerate_api.source'),
+                'rate' => (float) $data['conversion_rate'],
+                'source' => config('services.exchangerate_api.source'),
                 'timestamp' => Carbon::now()->toISOString(),
             ];
 
@@ -89,11 +91,11 @@ class ExchangeRateService
     private function log(string $currency, float $rate): void
     {
         ExchangeRateLog::create([
-            'base_currency'   => self::BASE_CURRENCY,
+            'base_currency' => self::BASE_CURRENCY,
             'target_currency' => $currency,
-            'rate'            => $rate,
-            'source'          => config('services.exchangerate_api.source'),
-            'fetched_at'      => now(),
+            'rate' => $rate,
+            'source' => config('services.exchangerate_api.source'),
+            'fetched_at' => now(),
         ]);
     }
 }
