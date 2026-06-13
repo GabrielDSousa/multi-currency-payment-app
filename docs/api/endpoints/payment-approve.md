@@ -78,14 +78,22 @@ No body parameters required.
 #### 403 Forbidden — Employee Attempting to Approve
 ```json
 {
-    "message": "This action is unauthorized."
+    "message": "This action is unauthorized.",
+    "exception": "Symfony\\Component\\HttpKernel\\Exception\\AccessDeniedHttpException",
+    "file": "/var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Handler.php",
+    "line": 672,
+    "trace": [ ... ]
 }
 ```
 
 #### 404 Not Found — Payment Does Not Exist
 ```json
 {
-    "message": "No query results for model [App\\Models\\Payment] 42."
+    "message": "No query results for model [App\\Models\\Payment] 99999.",
+    "exception": "Symfony\\Component\\HttpKernel\\Exception\\NotFoundHttpException",
+    "file": "/var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Handler.php",
+    "line": 668,
+    "trace": [ ... ]
 }
 ```
 
@@ -97,6 +105,10 @@ No body parameters required.
 | `pending` | `true` | `false` |
 | `approved_by` | `null` | Finance user's ID |
 | `approved_at` | `null` | Current UTC timestamp |
+| `exception` | `string` | Path of the Exception |
+| `file` | `string` | Path where the exception occurred |
+| `line` | `string` | Line number where the exception occurred |
+| `trace` | `array` | List of method or function calls that led to the failure |
 
 ### Notes
 - The `exchange_rate`, `amount_eur`, and `rate_source` fields remain unchanged — they were captured at creation time and are immutable.
