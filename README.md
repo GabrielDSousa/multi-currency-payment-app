@@ -169,8 +169,12 @@ Full specification: [`openapi.yaml`](openapi.yaml)
 | `PATCH` | `/api/payment/{payment}/reject` | `auth:api`, `role:finance` | Reject a payment |
 
 Detailed docs per endpoint:
-- [Auth endpoints](docs/api/endpoints/auth.md)
+- [Health](docs/api/endpoints/health.md)
+- [Register](docs/api/endpoints/register.md)
+- [Login](docs/api/endpoints/login.md)
+- [Logout](docs/api/endpoints/logout.md)
 - [Payment list](docs/api/endpoints/payment-list.md)
+- [Payment detail](docs/api/endpoints/payment-detail.md)
 - [Approve payment](docs/api/endpoints/payment-approve.md)
 - [Reject payment](docs/api/endpoints/payment-reject.md)
 
