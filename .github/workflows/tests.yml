@@ -52,8 +52,11 @@ jobs:
       - name: Install dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
+      - name: Copy environment file
+        run: cp .env.example .env
+
       - name: Generate application key
-        run: php artisan key:generate --env=testing
+        run: php artisan key:generate
 
       - name: Generate Passport keys
         run: php artisan passport:keys --no-interaction
