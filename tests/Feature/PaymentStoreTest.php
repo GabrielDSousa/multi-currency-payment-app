@@ -141,10 +141,6 @@ class PaymentStoreTest extends TestCase
         ]);
     }
 
-    // =========================================================================
-    // SECTION 3 — Exchange rate integration
-    // =========================================================================
-
     #[Test]
     public function exchange_rate_is_stored_from_the_api_response(): void
     {
@@ -213,8 +209,6 @@ class PaymentStoreTest extends TestCase
         $this->assertDatabaseHas('payments', ['currency_code' => 'USD']);
     }
 
-    // ─── Multiple currency pairs ───────────────────────────────────────────
-
     #[Test]
     #[DataProvider('currencyPairProvider')]
     public function it_creates_payment_for_each_supported_currency(
@@ -241,10 +235,6 @@ class PaymentStoreTest extends TestCase
             'JPY' => ['JPY', 161.30],
         ];
     }
-
-    // =========================================================================
-    // SECTION 4 — Description field
-    // =========================================================================
 
     #[Test]
     public function description_is_stored_when_provided(): void
@@ -273,10 +263,6 @@ class PaymentStoreTest extends TestCase
 
         $this->assertDatabaseHas('payments', ['description' => null]);
     }
-
-    // =========================================================================
-    // SECTION 5 — Validation errors (422)
-    // =========================================================================
 
     #[Test]
     public function amount_local_is_required(): void
@@ -372,10 +358,6 @@ class PaymentStoreTest extends TestCase
             ->assertJsonValidationErrors(['description']);
     }
 
-    // =========================================================================
-    // SECTION 6 — Authentication
-    // =========================================================================
-
     #[Test]
     public function unauthenticated_request_returns_401(): void
     {
@@ -391,10 +373,6 @@ class PaymentStoreTest extends TestCase
         $this->assertDatabaseCount('payments', 0);
     }
 
-    // =========================================================================
-    // SECTION 7 — Exchange Rate API failure
-    // =========================================================================
-
     #[Test]
     public function returns_503_when_exchange_rate_api_is_unavailable(): void
     {
@@ -407,7 +385,7 @@ class PaymentStoreTest extends TestCase
 
         $this->postJson(self::ENDPOINT, $this->validPayload())
             ->assertStatus(503)
-            ->assertJsonPath('message', 'Exchange rate service is temporarily unavailable. Please try again later.');
+            ->assertJsonPath('message', 'Failed to fetch exchange rate: Cannot connect to exchange rate API');
     }
 
     #[Test]
