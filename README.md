@@ -144,7 +144,12 @@ Authorization: Bearer <your_token_here>
 
 ---
 
-## Verifying the schedule payment expire command
+## Scheduled Tasks
+ 
+| Command | Schedule | Description |
+|---------|----------|-------------|
+| `payment:expire` | Every hour | Expires pending payments older than 48 hours |
+
 
 ```bash
 ./vendor/bin/sail artisan schedule:run
@@ -163,6 +168,7 @@ Full specification: [`openapi.yaml`](openapi.yaml)
 | `POST` | `/api/register` | Public | Register a new user |
 | `POST` | `/api/login` | Public | Authenticate and receive token |
 | `POST` | `/api/logout` | `auth:api` | Revoke current token |
+| `POST` | `/payments` | `auth:api` | Submit a new payment request |
 | `GET` | `/api/payment` | `auth:api` | List all payments |
 | `GET` | `/api/payment/{payment}` | `auth:api` | Get a single payment |
 | `PATCH` | `/api/payment/{payment}/approve` | `auth:api`, `role:finance` | Approve a payment |
@@ -173,6 +179,7 @@ Detailed docs per endpoint:
 - [Register](docs/api/endpoints/register.md)
 - [Login](docs/api/endpoints/login.md)
 - [Logout](docs/api/endpoints/logout.md)
+- [Payment store](docs/api/endpoints/payment-store.md)
 - [Payment list](docs/api/endpoints/payment-list.md)
 - [Payment detail](docs/api/endpoints/payment-detail.md)
 - [Approve payment](docs/api/endpoints/payment-approve.md)
