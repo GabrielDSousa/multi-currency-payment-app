@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[Group('healthcheck')]
