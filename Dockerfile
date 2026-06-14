@@ -1,20 +1,13 @@
-FROM richarvey/nginx-php-fpm:3.1.6
+FROM serversideup/php:8.5-fpm-nginx
 
-COPY . .
+# Switch to root to install dependencies and copy files
+USER root
 
-# Image config
-ENV SKIP_COMPOSER 1
-ENV WEBROOT /var/www/html/public
-ENV PHP_ERRORS_STDERR 1
-ENV RUN_SCRIPTS 1
-ENV REAL_IP_HEADER 1
+# Install PHP dependencies
+RUN install-php-extensions intl bcmath
 
-# Laravel config
-ENV APP_ENV production
-ENV APP_DEBUG false
-ENV LOG_CHANNEL stderr
+# Switch back to non-root user for security
+USER www-data
 
-# Allow composer to run as root
-ENV COMPOSER_ALLOW_SUPERUSER 1
-
-CMD ["/start.sh"]
+# Copy application files with correct ownership
+COPY --chown=www-data:www-data . /var/www/html
