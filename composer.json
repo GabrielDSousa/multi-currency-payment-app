@@ -1,5 +1,5 @@
 {
-    "name": "gabsdsousa/multi-currency payment API",
+    "name": "gabsdsousa/multi-currency-payment-api",
     "type": "project",
     "description": "Application that manages multi-currency payment requests across a company with employees in different countries.",
     "keywords": [
@@ -12,10 +12,12 @@
     "require": {
         "php": "^8.2",
         "laravel/framework": "^12.0",
+        "laravel/passport": "^13.0",
         "laravel/tinker": "^2.10.1"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
+        "laravel/boost": "^2.4",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.24",
         "laravel/sail": "^1.41",

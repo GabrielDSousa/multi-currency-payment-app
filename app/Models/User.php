@@ -2,48 +2,72 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Passport\Contracts\OAuthenticatable;
+use Laravel\Passport\HasApiTokens;
+use Laravel\Passport\PersonalAccessTokenResult;
+use Laravel\Passport\Token;
 
-class User extends Authenticatable
+class User extends Authenticatable implements OAuthenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
+        'country',
+        'currency_code',
+        'department',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function paymentRequests(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function pendingPayments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'pending');
+    }
+
+    public function approvedPayments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'approved_by');
+    }
+
+    public function avaibleTokens(): HasMany
+    {
+        return $this->hasMany(Token::class)->where('revoked', false);
+    }
+
+    public function revokeAllTokens(): void
+    {
+        $this->avaibleTokens()->each(function (Token $token) {
+            $token->revoke();
+        });
+    }
+
+    public function createTokenWithDepartmentScope(): PersonalAccessTokenResult
+    {
+        $token = $this->createToken("{$this->name} #{$this->id}", [$this->department]);
+
+        return $token;
     }
 }

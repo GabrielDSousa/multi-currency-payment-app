@@ -1,59 +1,228 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 💱 Multi-Currency Payment API
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="https://img.shields.io/badge/PHP-8.x-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP Version">
+  <img src="https://img.shields.io/badge/Laravel-12-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel Version">
+  <img src="https://img.shields.io/badge/Passport-OAuth2-4A90D9?style=for-the-badge&logo=auth0&logoColor=white" alt="Laravel Passport">
+  <img src="https://img.shields.io/badge/Docker-Sail-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker">
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License">
 </p>
 
-## About Laravel
+<p align="center">
+  A RESTful API for creating, listing, and approving/rejecting payment requests across multiple currencies. Built with Laravel 12, OAuth2 authentication via Laravel Passport, and full test coverage using PHPUnit.
+</p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Table of Contents
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [Configuration](#configuration)
+- [Running Tests](#running-tests)
+- [API Reference](#api-reference)
+- [Test Accounts](#test-accounts)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
+- [Contact](#contact)
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Features
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- 🔐 **OAuth2 Authentication** — Secure token-based auth via Laravel Passport (Personal Access Client)
+- 💵 **Multi-Currency Support** — Payment requests in different currencies with real-time exchange rates
+- 👥 **Role-Based Access Control** — `employee` and `finance` scopes enforced at the route level
+- ✅ **Approval Workflow** — Finance users can approve or reject pending payment requests
+- 🧪 **TDD** — Full test suite built with PHPUnit and Laravel Factories/Fakers
+- 🐳 **Dockerized** — Ready-to-run with Laravel Sail
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Tech Stack
 
-### Premium Partners
+| Layer | Technology |
+|---|---|
+| Language | PHP 8.x |
+| Framework | Laravel 12 |
+| Authentication | Laravel Passport (OAuth2) |
+| Database | MySQL (via Docker) |
+| Infrastructure | Laravel Sail / Docker Compose |
+| Testing | PHPUnit |
+| Code Style | Laravel Pint |
+| Exchange Rates | [ExchangeRate-API](https://www.exchangerate-api.com/) |
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+## Prerequisites
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- [Composer](https://getcomposer.org/)
+- [Docker](https://www.docker.com/) and Docker Compose
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Getting Started
 
-## Security Vulnerabilities
+### 1. Clone the repository
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+git clone git@github.com:GabrielDSousa/multi-currency-payment-app.git
+cd multi-currency-payment-app
+```
+
+### 2. Copy the environment file
+
+```bash
+cp .env.example .env
+```
+
+### 3. Set the Exchange Rate API key
+
+Open `.env` and fill in your key (free tier available at [exchangerate-api.com](https://www.exchangerate-api.com/)):
+
+```env
+EXCHANGERATE_API_KEY=your_key_here
+```
+
+### 4. Install dependencies
+
+```bash
+composer install
+```
+
+### 5. Start the containers
+
+```bash
+./vendor/bin/sail up -d --build
+```
+
+### 6. Prepare the application
+
+```bash
+./vendor/bin/sail artisan key:generate
+./vendor/bin/sail artisan passport:keys
+```
+
+### 7. Run migrations and seed the database
+
+```bash
+./vendor/bin/sail artisan migrate:fresh --seed --force
+```
+
+> **Note:** The `DatabaseSeeder` runs `PassportPersonalClientSeeder`, `UserSeeder`, and `PaymentSeeder` in order. Always run migrations before seeding to avoid `oauth_clients table not found` errors.
+
+---
+
+## Configuration
+
+### Passport Client
+
+The `PassportPersonalClientSeeder` automatically runs `passport:client --personal`. If you ever need to recreate it manually:
+
+```bash
+./vendor/bin/sail artisan passport:client --personal --no-interaction
+```
+
+### Authentication Flow
+
+1. **Login** — `POST /api/login` with `{ email, password }` returns a Bearer token.
+2. **Authenticated requests** — Pass the token in the `Authorization` header:
+
+```
+Authorization: Bearer <your_token_here>
+```
+
+---
+
+## Running Tests
+
+```bash
+./vendor/bin/sail test
+```
+
+---
+
+## Scheduled Tasks
+ 
+| Command | Schedule | Description |
+|---------|----------|-------------|
+| `payment:expire` | Every hour | Expires pending payments older than 48 hours |
+
+
+```bash
+./vendor/bin/sail artisan schedule:run
+./vendor/bin/sail artisan schedule:list
+```
+
+---
+
+## API Reference
+
+Full specification: [`openapi.yaml`](openapi.yaml)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/api/health` | Public | System health check |
+| `POST` | `/api/register` | Public | Register a new user |
+| `POST` | `/api/login` | Public | Authenticate and receive token |
+| `POST` | `/api/logout` | `auth:api` | Revoke current token |
+| `POST` | `/payments` | `auth:api` | Submit a new payment request |
+| `GET` | `/api/payment` | `auth:api` | List all payments |
+| `GET` | `/api/payment/{payment}` | `auth:api` | Get a single payment |
+| `PATCH` | `/api/payment/{payment}/approve` | `auth:api`, `role:finance` | Approve a payment |
+| `PATCH` | `/api/payment/{payment}/reject` | `auth:api`, `role:finance` | Reject a payment |
+
+Detailed docs per endpoint:
+- [Health](docs/api/endpoints/health.md)
+- [Register](docs/api/endpoints/register.md)
+- [Login](docs/api/endpoints/login.md)
+- [Logout](docs/api/endpoints/logout.md)
+- [Payment store](docs/api/endpoints/payment-store.md)
+- [Payment list](docs/api/endpoints/payment-list.md)
+- [Payment detail](docs/api/endpoints/payment-detail.md)
+- [Approve payment](docs/api/endpoints/payment-approve.md)
+- [Reject payment](docs/api/endpoints/payment-reject.md)
+
+---
+
+## Test Accounts
+
+The seeder creates the following accounts for local development:
+
+| Role | Email | Password | Department |
+|------|-------|----------|------------|
+| Finance | `finance_user@email.com` | `SenhaSegura123!` | finance |
+| Employee | `employee_user@email.com` | `SenhaSegura123!` | employee |
+
+---
+
+## Troubleshooting
+
+**`oauth_clients table not found` during seeding**
+Run migrations before seeding:
+```bash
+./vendor/bin/sail artisan migrate
+./vendor/bin/sail artisan db:seed
+```
+
+**Issues with Docker Compose**
+Double-check file paths and permissions for any local Dockerfiles. Make sure all containers are healthy:
+```bash
+./vendor/bin/sail ps
+```
+
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Distributed under the [MIT License](LICENSE).
+
+---
+
+## Contact
+
+**Gabriel D. Sousa** — gabrielramos.email@gmail.com
+
+Project repository: [github.com/GabrielDSousa/multi-currency-payment-app](https://github.com/GabrielDSousa/multi-currency-payment-app)
