@@ -45,7 +45,7 @@ class ExchangeRateService
 
         try {
             $response = Http::timeout(self::API_TIMEOUT)
-                ->get("{$source}{$apiKey}/pair/".self::BASE_CURRENCY."/{$currency}");
+                ->get("https://{$source}{$apiKey}/pair/".self::BASE_CURRENCY."/{$currency}");
 
             if ($response->failed()) {
                 throw new RuntimeException(

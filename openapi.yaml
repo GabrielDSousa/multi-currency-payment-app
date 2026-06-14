@@ -1,7 +1,7 @@
 openapi: 3.1.0
 
 info:
-  title: REST API
+  title: Multi currency payment API
   description: |
     RESTful API built with Laravel 12. This API manages multi-currency
     payment requests across a company with employees in different countries.
@@ -25,10 +25,10 @@ tags:
     description: User registration, login, and logout
   - name: Monitoring
     description: API health and status checks
-  - name: Payment Requests
+  - name: Payments
     description: >
-      Create, list, detail, approve, and reject multi-currency payment requests.
-      Employees see only their own records; finance members see all and can action them.
+      Submit, list, detail, approve, and reject multi-currency payment requests.
+      Employees manage their own requests; finance members action all requests.
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -250,19 +250,100 @@ paths:
               example:
                 message: "Unauthenticated."
 
-  # ── Payment Requests — List ───────────────────────────────────────────────
+  # ── Payments — Create ─────────────────────────────────────────────────────
   /payment:
+    post:
+      tags:
+        - Payments
+      summary: Create Payment
+      description: >
+        Submits a new payment request in the employee's local currency.
+
+        The exchange rate (EUR → local currency) is fetched automatically from
+        exchangerate-api.com at the time of submission and stored immutably
+        alongside the record. The EUR equivalent (`amount_eur`) is computed
+        server-side and returned in the response.
+
+        **Access:** any authenticated user.
+      operationId: createPayment
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StorePaymentRequest'
+            example:
+              amount_local: 1500.00
+              currency_code: "BRL"
+              description: "Office supplies reimbursement"
+      responses:
+        '201':
+          description: Payment request created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentDetailResponse'
+              example:
+                data:
+                  id: 42
+                  user_id: 7
+                  description: "Office supplies reimbursement"
+                  amount_local: 1500.00
+                  currency_code: "BRL"
+                  amount_eur: 276.7528
+                  exchange_rate: 5.42
+                  rate_source: "exchangerate-api.com"
+                  rate_timestamp: "2026-06-13T10:00:00+00:00"
+                  status: "pending"
+                  approved_by: null
+                  approved_at: null
+                  expired_at: null
+                  created_at: "2026-06-13T10:00:00+00:00"
+                  updated_at: "2026-06-13T10:00:00+00:00"
+        '401':
+          description: Missing or invalid Bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "Unauthenticated."
+        '422':
+          description: Validation error — one or more fields are invalid or missing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+              example:
+                message: "The amount local field is required. (and 1 more error)"
+                errors:
+                  amount_local:
+                    - "The amount local field is required."
+                  currency_code:
+                    - "The currency code field is required."
+        '503':
+          description: Exchange rate service temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "Exchange rate service is temporarily unavailable. Please try again later."
+
+    # ── Payments — List ───────────────────────────────────────────────────────
     get:
       tags:
-        - Payment Requests
-      summary: List Payment Requests
+        - Payment
+      summary: List Payment
       description: >
         Returns a paginated list of payment requests (15 per page).
 
         **Access rules:**
         - `employee` — sees only their own requests; `employee_id` filter is ignored.
         - `finance` — sees all requests and may filter by `employee_id`.
-      operationId: listPaymentRequests
+      operationId: listPayment
       security:
         - BearerAuth: []
       parameters:
@@ -294,9 +375,7 @@ paths:
         - name: date_to
           in: query
           required: false
-          description: >
-            Include only requests created on or before this date (YYYY-MM-DD).
-            Must be equal to or after `date_from`.
+          description: Include only requests created on or before this date (YYYY-MM-DD). Must be ≥ `date_from`.
           schema:
             type: string
             format: date
@@ -316,7 +395,6 @@ paths:
             type: integer
             minimum: 1
             default: 1
-          example: 1
       responses:
         '200':
           description: Paginated list of payment requests.
@@ -331,21 +409,21 @@ paths:
                     description: "Office supplies reimbursement"
                     amount_local: 1500.00
                     currency_code: "BRL"
-                    amount_eur: 276.75
+                    amount_eur: 276.7528
                     exchange_rate: 5.42
                     rate_source: "exchangerate-api.com"
-                    rate_timestamp: "2026-06-12T10:00:00+00:00"
+                    rate_timestamp: "2026-06-13T10:00:00+00:00"
                     status: "pending"
                     approved_by: null
                     approved_at: null
                     expired_at: null
-                    created_at: "2026-06-12T10:00:00+00:00"
-                    updated_at: "2026-06-12T10:00:00+00:00"
+                    created_at: "2026-06-13T10:00:00+00:00"
+                    updated_at: "2026-06-13T10:00:00+00:00"
                 links:
-                  first: "http://localhost/api/payment?page=1"
-                  last: "http://localhost/api/payment?page=2"
+                  first: "http://localhost/api/payments?page=1"
+                  last: "http://localhost/api/payments?page=2"
                   prev: null
-                  next: "http://localhost/api/payment?page=2"
+                  next: "http://localhost/api/payments?page=2"
                 meta:
                   current_page: 1
                   from: 1
@@ -373,19 +451,19 @@ paths:
                   status:
                     - "The status field must be one of pending, approved, rejected, expired."
 
-  # ── Payment Requests — Detail ─────────────────────────────────────────────
-  /payment/{id}:
+  # ── Payments — Detail / Approve / Reject ──────────────────────────────────
+  /payments/{id}:
     get:
       tags:
-        - Payment Requests
-      summary: Get Payment Request
+        - Payments
+      summary: Get Payment
       description: >
         Returns the full details of a single payment request.
 
         **Access rules:**
         - `employee` — can only fetch their own request; returns `403` otherwise.
         - `finance` — can fetch any request.
-      operationId: getPaymentRequest
+      operationId: getPayment
       security:
         - BearerAuth: []
       parameters:
@@ -410,16 +488,16 @@ paths:
                   description: "Office supplies reimbursement"
                   amount_local: 1500.00
                   currency_code: "BRL"
-                  amount_eur: 276.75
+                  amount_eur: 276.7528
                   exchange_rate: 5.42
                   rate_source: "exchangerate-api.com"
-                  rate_timestamp: "2026-06-12T10:00:00+00:00"
+                  rate_timestamp: "2026-06-13T10:00:00+00:00"
                   status: "pending"
                   approved_by: null
                   approved_at: null
                   expired_at: null
-                  created_at: "2026-06-12T10:00:00+00:00"
-                  updated_at: "2026-06-12T10:00:00+00:00"
+                  created_at: "2026-06-13T10:00:00+00:00"
+                  updated_at: "2026-06-13T10:00:00+00:00"
         '401':
           description: Missing or invalid Bearer token.
           content:
@@ -445,27 +523,20 @@ paths:
               example:
                 message: "No query results for model [App\\Models\\Payment] 42."
 
-  # ── Payment Requests — Approve ────────────────────────────────────────────
   /payment/{id}/approve:
     patch:
       tags:
-        - Payment Requests
-      summary: Approve Payment Request
+        - Payment
+      summary: Approve Payment
       description: >
-        Marks a pending payment request as approved.
+        Marks a pending payment request as approved. Sets `approved_by` to the
+        finance user's ID and `approved_at` to the current timestamp.
 
-        **Access rules:**
-        - `finance` only — employees receive `403`.
+        **Access:** `finance` only — employees receive `403`.
 
-        **State rules:**
-        - Only requests with `status = pending` can be approved.
-        - Attempting to approve an already approved, rejected, or expired
-          request returns `400`.
-
-        On success, the response reflects the updated payment with
-        `status: "approved"`, `approved_by` set to the finance user's ID,
-        and `approved_at` set to the current timestamp.
-      operationId: approvePaymentRequest
+        **State:** only `status = pending` requests can be approved; all other
+        states return `400`.
+      operationId: approvePayment
       security:
         - BearerAuth: []
       parameters:
@@ -478,7 +549,7 @@ paths:
           example: 42
       responses:
         '200':
-          description: Payment request approved successfully.
+          description: Payment approved successfully.
           content:
             application/json:
               schema:
@@ -490,18 +561,18 @@ paths:
                   description: "Office supplies reimbursement"
                   amount_local: 1500.00
                   currency_code: "BRL"
-                  amount_eur: 276.75
+                  amount_eur: 276.7528
                   exchange_rate: 5.42
                   rate_source: "exchangerate-api.com"
-                  rate_timestamp: "2026-06-12T10:00:00+00:00"
+                  rate_timestamp: "2026-06-13T10:00:00+00:00"
                   status: "approved"
                   approved_by: 3
                   approved_at: "2026-06-13T14:22:00+00:00"
                   expired_at: null
-                  created_at: "2026-06-12T10:00:00+00:00"
+                  created_at: "2026-06-13T10:00:00+00:00"
                   updated_at: "2026-06-13T14:22:00+00:00"
         '400':
-          description: Bad request — payment is not in pending state.
+          description: Payment is not in pending state.
           content:
             application/json:
               schema:
@@ -517,7 +588,7 @@ paths:
               example:
                 message: "Unauthenticated."
         '403':
-          description: Forbidden — only finance members can approve requests.
+          description: Forbidden — only finance members can approve.
           content:
             application/json:
               schema:
@@ -533,28 +604,20 @@ paths:
               example:
                 message: "No query results for model [App\\Models\\Payment] 42."
 
-  # ── Payment Requests — Reject ─────────────────────────────────────────────
   /payment/{id}/reject:
     patch:
       tags:
-        - Payment Requests
-      summary: Reject Payment Request
+        - Payment
+      summary: Reject Payment
       description: >
-        Marks a pending payment request as rejected.
+        Marks a pending payment request as rejected. Sets `approved_by` to the
+        finance user's ID. `approved_at` remains `null`.
 
-        **Access rules:**
-        - `finance` only — employees receive `403`.
+        **Access:** `finance` only — employees receive `403`.
 
-        **State rules:**
-        - Only requests with `status = pending` can be rejected.
-        - Attempting to reject an already approved, rejected, or expired
-          request returns `400`.
-
-        On success, the response reflects the updated payment with
-        `status: "rejected"`, `approved_by` set to the finance user's ID,
-        and `approved_at` remaining `null` (rejection does not set an
-        approval timestamp).
-      operationId: rejectPaymentRequest
+        **State:** only `status = pending` requests can be rejected; all other
+        states return `400`.
+      operationId: rejectPayment
       security:
         - BearerAuth: []
       parameters:
@@ -567,7 +630,7 @@ paths:
           example: 42
       responses:
         '200':
-          description: Payment request rejected successfully.
+          description: Payment rejected successfully.
           content:
             application/json:
               schema:
@@ -579,18 +642,18 @@ paths:
                   description: "Office supplies reimbursement"
                   amount_local: 1500.00
                   currency_code: "BRL"
-                  amount_eur: 276.75
+                  amount_eur: 276.7528
                   exchange_rate: 5.42
                   rate_source: "exchangerate-api.com"
-                  rate_timestamp: "2026-06-12T10:00:00+00:00"
+                  rate_timestamp: "2026-06-13T10:00:00+00:00"
                   status: "rejected"
                   approved_by: 3
                   approved_at: null
                   expired_at: null
-                  created_at: "2026-06-12T10:00:00+00:00"
+                  created_at: "2026-06-13T10:00:00+00:00"
                   updated_at: "2026-06-13T14:25:00+00:00"
         '400':
-          description: Bad request — payment is not in pending state.
+          description: Payment is not in pending state.
           content:
             application/json:
               schema:
@@ -606,7 +669,7 @@ paths:
               example:
                 message: "Unauthenticated."
         '403':
-          description: Forbidden — only finance members can reject requests.
+          description: Forbidden — only finance members can reject.
           content:
             application/json:
               schema:
@@ -880,7 +943,31 @@ components:
             app:
               $ref: '#/components/schemas/HealthCheck'
 
-    # Payment schemas ─────────────────────────────────────────────────────────
+    # Payment schemas ──────────────────────────────────────────────────────────
+
+    StorePaymentRequest:
+      type: object
+      required:
+        - amount_local
+        - currency_code
+      properties:
+        amount_local:
+          type: number
+          format: float
+          description: Amount in the employee's local currency. Must be greater than 0.
+          example: 1500.00
+        currency_code:
+          type: string
+          minLength: 3
+          maxLength: 3
+          description: ISO 4217 currency code (3 alpha characters). Case-insensitive — stored as uppercase.
+          example: "BRL"
+        description:
+          type: string
+          maxLength: 1000
+          nullable: true
+          description: Optional human-readable reason for the payment.
+          example: "Office supplies reimbursement"
 
     PaymentObject:
       type: object
@@ -895,6 +982,7 @@ components:
           example: 7
         description:
           type: string
+          nullable: true
           description: Human-readable reason for the payment.
           example: "Office supplies reimbursement"
         amount_local:
@@ -906,19 +994,19 @@ components:
           type: string
           minLength: 3
           maxLength: 3
-          description: ISO 4217 code of the local currency.
+          description: ISO 4217 code of the local currency (always uppercase).
           example: "BRL"
         amount_eur:
           type: number
           format: float
-          description: Equivalent amount in EUR, calculated at creation time.
-          example: 276.75
+          description: Equivalent amount in EUR, calculated at creation time (4 decimal places).
+          example: 276.7528
         exchange_rate:
           type: number
           format: float
           description: >
-            EUR → local currency rate captured at creation time.
-            This value is immutable — it never changes after the request is created.
+            EUR → local currency rate captured at creation time (6 decimal places).
+            Immutable — never changes after the request is created.
           example: 5.42
         rate_source:
           type: string
@@ -928,23 +1016,21 @@ components:
           type: string
           format: date-time
           description: ISO 8601 datetime when the exchange rate was fetched.
-          example: "2026-06-12T10:00:00+00:00"
+          example: "2026-06-13T10:00:00+00:00"
         status:
           type: string
           enum: [pending, approved, rejected, expired]
           description: >
             Derived status of the request.
             - `pending` — awaiting finance review.
-            - `approved` — approved by a finance member.
-            - `rejected` — rejected by a finance member.
-            - `expired` — pending for more than 48 hours without action.
+            - `approved` — approved by a finance member (`approved_at` is set).
+            - `rejected` — rejected by a finance member (`approved_at` remains null).
+            - `expired` — pending for more than 48 hours without action (`expired_at` is set).
           example: "pending"
         approved_by:
           type: integer
           nullable: true
-          description: >
-            ID of the finance user who approved or rejected the request.
-            `null` if not yet actioned.
+          description: ID of the finance user who approved or rejected the request. `null` if not yet actioned.
           example: null
         approved_at:
           type: string
@@ -962,12 +1048,12 @@ components:
           type: string
           format: date-time
           description: ISO 8601 datetime when the request was created.
-          example: "2026-06-12T10:00:00+00:00"
+          example: "2026-06-13T10:00:00+00:00"
         updated_at:
           type: string
           format: date-time
           description: ISO 8601 datetime of the last update.
-          example: "2026-06-12T10:00:00+00:00"
+          example: "2026-06-13T10:00:00+00:00"
 
     PaginationLinks:
       type: object
@@ -976,12 +1062,12 @@ components:
           type: string
           format: uri
           description: URL of the first page.
-          example: "http://localhost/api/payment?page=1"
+          example: "http://localhost/api/payments?page=1"
         last:
           type: string
           format: uri
           description: URL of the last page.
-          example: "http://localhost/api/payment?page=2"
+          example: "http://localhost/api/payments?page=2"
         prev:
           type: string
           format: uri
@@ -993,14 +1079,13 @@ components:
           format: uri
           nullable: true
           description: URL of the next page, or `null` on the last page.
-          example: "http://localhost/api/payment?page=2"
+          example: "http://localhost/api/payments?page=2"
 
     PaginationMeta:
       type: object
       properties:
         current_page:
           type: integer
-          description: The current page number.
           example: 1
         from:
           type: integer
@@ -1012,7 +1097,7 @@ components:
           example: 2
         per_page:
           type: integer
-          description: Number of items per page. Always `15`.
+          description: Items per page — always `15`.
           example: 15
         to:
           type: integer
@@ -1020,7 +1105,7 @@ components:
           example: 15
         total:
           type: integer
-          description: Total number of records matching the current filters.
+          description: Total records matching the current filters.
           example: 20
 
     PaymentListResponse:

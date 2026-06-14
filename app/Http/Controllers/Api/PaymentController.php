@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StorePaymentRequest;
 use App\Http\Resources\PaymentResource;
 use App\Models\Payment;
+use App\Services\ExchangeRateService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -94,6 +96,30 @@ class PaymentController extends Controller
         ]);
 
         return new PaymentResource($payment->fresh());
+    }
+
+    public function store(StorePaymentRequest $request, ExchangeRateService $rates): JsonResponse
+    {
+        try {
+            $rateData = $rates->fetchRate($request->currency_code);
+        } catch (\RuntimeException $e) {
+            abort(503, 'Failed to fetch exchange rate: '.$e->getMessage());
+        }
+
+        $payment = Payment::create([
+            'user_id' => $request->user()->id,
+            'amount_local' => $request->amount_local,
+            'currency_code' => strtoupper($request->currency_code),
+            'amount_eur' => round($request->amount_local / $rateData['rate'], 4),
+            'exchange_rate' => $rateData['rate'],
+            'rate_source' => $rateData['source'],
+            'rate_timestamp' => $rateData['timestamp'],
+            'description' => $request->description,
+        ])->fresh();
+
+        return (new PaymentResource($payment))
+            ->response()
+            ->setStatusCode(201);
     }
 
     public function reject(Request $request, Payment $payment): JsonResponse|PaymentResource
