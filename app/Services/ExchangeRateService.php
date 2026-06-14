@@ -29,12 +29,12 @@ class ExchangeRateService
     public function fetchRate(string $currency): array
     {
         $currency = strtoupper($currency);
-        $cacheKey = 'exchange_rate_' . self::BASE_CURRENCY . '_' . $currency;
+        $cacheKey = 'exchange_rate_'.self::BASE_CURRENCY.'_'.$currency;
 
         return Cache::remember(
             $cacheKey,
             self::CACHE_TTL,
-            fn() => $this->callApi($currency)
+            fn () => $this->callApi($currency)
         );
     }
 
@@ -45,7 +45,7 @@ class ExchangeRateService
 
         try {
             $response = Http::timeout(self::API_TIMEOUT)
-                ->get("https://{$source}{$apiKey}/pair/" . self::BASE_CURRENCY . "/{$currency}");
+                ->get("https://{$source}{$apiKey}/pair/".self::BASE_CURRENCY."/{$currency}");
 
             if ($response->failed()) {
                 throw new RuntimeException(
@@ -57,7 +57,7 @@ class ExchangeRateService
 
             if (($data['result'] ?? '') !== 'success') {
                 throw new RuntimeException(
-                    "Exchange rate API error for EUR→{$currency}: " . ($data['error-type'] ?? 'unknown')
+                    "Exchange rate API error for EUR→{$currency}: ".($data['error-type'] ?? 'unknown')
                 );
             }
 
